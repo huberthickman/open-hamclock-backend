@@ -17,9 +17,21 @@ Emit:
 TODO: Needs a cron job to pull this on schedule and update server side into HamClock format. Maybe bash script?
 
 6. /NOAASpaceWX/xray.txt
+ray.txt from SWPC GOES X-ray JSON
+Fetch X-ray JSON
+For each record:
+timestamp as YYYY-MM-DDTHH:MM:SSZ
+short/long flux values
+Emit with fixed columns:
+f"{ts:<35}{short:11.3e} {long:11.3e}"
+
 7. /NOAASpaceWX/noaaswx.txt
 8. /NOAASpaceWX/rank2_coeffs.txt
 9. /dst/dst.txt
+
+NOAA SWPC’s real-time/near-real-time solar wind magnetic-field products (DSCOVR-based).
+For example, mag-1-day.json is an obvious match for a 24h rolling series.
+
 10. /solar-wind/swind-24hr.txt
 11. /Aurora/aurora.txt
 12. /drap/stats.txt
