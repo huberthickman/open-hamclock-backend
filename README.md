@@ -1,6 +1,8 @@
 # open-hamclock-backend
-Open Source HamClock Backend Replacement
-This is a community project and no relation to the creator of HamClock
+Open Source HamClock Backend Replacement. This is a community project and no relation to the creator of HamClock
+
+# License
+MIT - this is free. Not for commercial use
 
 ## Compile
 
