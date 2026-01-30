@@ -3,6 +3,19 @@
 3. wx.pl
 4. /RSS/web15rss.pl
 5. /NOAASpaceWX/Bz.txt
+
+SOURCE = https://services.swpc.noaa.gov/products/solar-wind/
+
+Bz.txt from SWPC solar-wind magnetic field JSON
+Fetch mag-1-day.json (or similar)
+Extract timestamp + Bx/By/Bz/Bt
+Convert timestamp to UNIX epoch seconds
+Emit:
+# Bz, Bx, By, Bt (nT), seconds since UNIX epoch
+<epoch> <Bx> <By> <Bz> <Bt>
+
+TODO: Needs a cron job to pull this on schedule and update server side into HamClock format. Maybe bash script?
+
 6. /NOAASpaceWX/xray.txt
 7. /NOAASpaceWX/noaaswx.txt
 8. /NOAASpaceWX/rank2_coeffs.txt
