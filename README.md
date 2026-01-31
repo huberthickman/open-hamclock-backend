@@ -60,13 +60,26 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 # Vision
 The goal is to make this as a drop-in replacement for the HamClock backend by replicating the same client/server responses with Perl CGI scripting and static files. We don't have access to the backend server source code so this is completely created by looking at the interfaces. To allow existing HamClock's running on Arduino to continue to work, we will setup a local DNS sinkhole to redirect to your local backend running at your home or office.
 
-# Compile Backend
+# Requirements:
+- perl
+- lighttpd (or apache httpd with CGI enabled)
+- perl-libwww-perl
+- perl-JSON
+- perl-XML-RSS
+- perl-XML-Feed
+- perl-HTML-Parser
 
-1. Use WSL2 and Ubuntu 22 LTS
-2. Clone repository
-3. go build
-4. run hamclock-backend
 
-# Using
-
-1. Start hamclock application with hamclock -b ip:port (it can be localhost)
+# Install:
+  apt install \
+  lighttpd \
+  libwww-perl \
+  libjson-perl \
+  libxml-rss-perl \
+  libxml-feed-perl \
+  libhtml-parser-perl
+  
+  tar xzf hamclock-backend.tar.gz
+  cd hamclock-backend
+  lighttpd -f etc/lighttpd.conf
+  crontab cron/hamclock.cron
