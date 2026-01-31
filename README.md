@@ -6,6 +6,7 @@ MIT - this is free. Not for commercial use
 
 # Project Completion Status
 - [x] Bz.txt generator
+- [x] wx.pl working
 - [ ] aurora.txt generator
 - [ ] VOACAP map generator
 - [x] HamWeekly.com RSS feed generator
