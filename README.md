@@ -21,7 +21,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] fetchPSKReporter.pl?ofgrid=XXYY&maxage=1800 
 - [ ] worldwx/wx.txt
 - [ ] solar-flux/solarflux-99.txt
-- [ ] geomag/kindex.txt
+- [x] geomag/kindex.txt
 - [ ] dst/dst.txt
 - [ ] drap/stats.txt
 - [ ] solar-wind/swind-24hr.txt
