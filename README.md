@@ -18,8 +18,24 @@ MIT - this is free. Not for commercial use
 - [ ] worldwx/wx.txt
 - [ ] solar-flux/solarflux-99.txt
 - [ ] geomag/kindex.txt
+- [ ] dst/dst.txt
+- [ ] drap/stats.txt
+- [ ] solar-wind/swind-24hr.txt
+- [ ] cities2.txt
+- [ ] ssn/ssn-31.txt
+- [ ] NOAASpaceWX/noaaswx.txt
+- [ ] maps/map-D-2640x1320-Countries.bmp.z
+- [ ] maps/map-N-2640x1320-Countries.bmp.z
+- [ ] maps/map-D-660x330-Clouds.bmp.z
+- [ ] maps/map-N-660x330-Clouds.bmp.z
+- [ ] maps/map-N-660x330-Terrain.bmp.z
+- [ ] maps/map-D-660x330-DRAP-S.bmp.z
+- [ ] SDO/f_304_170.bmp.z
+- [ ] fetchVOACAP-MUF.pl?YEAR=2026&MONTH=1&UTC=17&TXLAT=&TXLNG=&PATH=0&WATTS=100&WIDTH=660&HEIGHT=330&MHZ=0.00&TOA=3.0&MODE=19&TOA=3.0
+- [ ] RSS/web15rss.pl
 - [x] HamWeekly.com RSS feed generator
 - [x] AR Newsline RSS feed generator
+- [x] NG3K.com feed generator
 - [x] zlib decompress utilty script
 - [x] Generic backend to keep HamClocks alive beyond June 2026
 - [ ] Complete end-to-end working backend
