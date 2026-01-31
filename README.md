@@ -18,6 +18,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] SDO/f_211_193_171_170.bmp.z
 - [ ] SDO/latest_170_HMIB.bmp.z
 - [ ] fetchVOACAPArea.pl
+- [ ] fetchPSKReporter.pl?ofgrid=XXYY&maxage=1800 
 - [ ] worldwx/wx.txt
 - [ ] solar-flux/solarflux-99.txt
 - [ ] geomag/kindex.txt
@@ -26,6 +27,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] solar-wind/swind-24hr.txt
 - [ ] cities2.txt
 - [ ] ssn/ssn-31.txt
+- [ ] dxpeds/dxpeditions.txt
 - [ ] NOAASpaceWX/noaaswx.txt
 - [ ] maps/map-D-2640x1320-Countries.bmp.z
 - [ ] maps/map-N-2640x1320-Countries.bmp.z
