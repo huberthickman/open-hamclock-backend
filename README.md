@@ -34,7 +34,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] ssn/ssn-31.txt
 - [x] ONTA/onta.txt
 - [ ] contests/contests311.txt (this may stay broken until an agreement is made based on the site's ToS https://www.contestcalendar.com/terms.php)
-- [ ] dxpeds/dxpeditions.txt
+- [x] dxpeds/dxpeditions.txt
 - [ ] NOAASpaceWX/noaaswx.txt
 - [ ] maps/map-D-2640x1320-Countries.bmp.z
 - [ ] maps/map-N-2640x1320-Countries.bmp.z
