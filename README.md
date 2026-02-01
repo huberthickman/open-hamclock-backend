@@ -97,15 +97,20 @@ You will need:
   sudo chown -R www-data:www-data /opt/hamclock-backend
   sudo chmod +x /opt/hamclock-backend/htdocs/ham/HamClock/*.pl
   sudo cp 50-hamclock.conf /etc/lighttpd/conf-available/50-hamclock.conf
+
   sudo lighttpd -tt -f /etc/lighttpd/lighttpd.conf
   sudo lighttpd-enable-mod hamclock
   sudo systemctl restart lighttpd
-
+  # add crontab as user www-data and described in scripts/crontab
 ```
 
-# Crontab Setup
-
-```bash
-sudo crontab -u www-data -e
-add the contents of the scripts/crontab file
+# Automated Pulls
+- Every 30 minutes: /opt/hamclock-backend/scripts/gen_aurora.sh
+- Every 5 minutes: /opt/hamclock-backend/scripts/gen_onta.pl
+- Once per day at 12:15am /opt/hamclock-backend/scripts/update_solarflux_cache.pl
+- Once per day at 12:20am /opt/hamclock-backend/scripts/publish_solarflux_99.pl
+- Once per day at 12:10am /opt/hamclock-backend/scripts/gen_swind_24hr.pl
+- Every 5 minutes: /opt/hamclock-backend/scripts/bzgen.sh
+- Once per minute: /opt/hamclock-backend/scripts/genxray.pl
+  
 ```
