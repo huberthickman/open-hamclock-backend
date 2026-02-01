@@ -7,10 +7,8 @@
 # Publish client-facing file
 20 0 * * * www-data /opt/hamclock-backend/scripts/publish_solarflux_99.pl
 
-*/15 * * * * /opt/hamclock-backend/scripts/update_aurora_cache.pl
-
-*/15 * * * * /opt/hamclock-backend/scripts/publish_aurora.pl
-
 */5 * * * * /opt/hamclock-backend/scripts/bzgen.sh
 
 */5 * * * * /opt/hamclock-backend/scripts/gen_onta.pl
+
+*/30 * * * * /opt/hamclock-backend/scripts/aurora.sh
