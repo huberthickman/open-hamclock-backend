@@ -46,7 +46,7 @@
 
 17 */12 * * * /opt/hamclock-backend/scripts/gen_kindex.pl >> /opt/hamclock-backend/logs/gen_kindex.log 2>&1
 
-*/6 */1 * * * /opt/hamclock-backend/scripts/gen_dst.sh
+6 */1 * * * /opt/hamclock-backend/scripts/gen_dst.sh
 
 */5 * * * * /opt/hamclock-backend/scripts/gen_drap.sh
 
