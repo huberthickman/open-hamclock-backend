@@ -18,6 +18,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [x] aurora.txt generator (and publisher)
 - [ ] VOACAP map generator
 - [x] IP geolocation fetch implemented - requires free tier 1000 req per day account and API key
+- [x] /cty/cty_wt_mod-ll-dxcc.txt - Country/prefix database with lat/ln
 - [ ] fetchBandConditions.pl re-implemented
 - [ ] SDO/f_211_193_171_170.bmp.z
 - [ ] SDO/latest_170_HMIB.bmp.z
