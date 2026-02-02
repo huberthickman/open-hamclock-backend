@@ -88,6 +88,7 @@ The goal is to make this as a drop-in replacement for the HamClock backend by re
 - perl-HTML-Parser
 - VOACAPL: https://www.qsl.net/hz1jw/voacapl/index.html
 - ImageMagick
+- numpy
 
 ### Prerequisites
 
