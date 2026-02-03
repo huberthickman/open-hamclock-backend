@@ -98,10 +98,10 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] ONTA - works, needs more de-duping; update 0.4 will have updated cache file and generation script
 - [x] 304a solar image
 - [ ] SSN data - invalid
-- [ ] Solar wind
-- [x] DRAP data - invalid
-- [x] Planetary k - invalid
-- [ ] Solar flux
+- [x] Solar wind
+- [ ] DRAP data - invalid
+- [ ] Planetary k - invalid
+- [x] Solar flux
 
 ## Image Notes
 - SDO/f_304_170.bmp.z : This is a zlib compressed bitmap. It comes from here most likely: https://umbra.nascom.nasa.gov/images/latest.html and https://umbra.nascom.nasa.gov/images/latest_aia_304.gif
