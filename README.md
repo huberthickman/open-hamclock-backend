@@ -94,20 +94,27 @@ Images with N means Night and D means Day
 ## Requirements:
 - perl
 - lighttpd (or apache httpd with CGI enabled)
-- perl-libwww-perl
-- perl-JSON
-- perl-XML-RSS
-- perl-XML-Feed
-- perl-HTML-Parser
+- sudo apt install -y build-essential gfortran gcc make libc6-dev \
+  libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget (needed for VOACAPL)
 - VOACAPL: https://www.qsl.net/hz1jw/voacapl/index.html
-- ImageMagick
-- libeccodes-dev
-- libg2c-dev
-- libjasper-dev
-- libpng-dev
-- python3-numpy
-- python3-pypro
-- python3-dev
+- sudo apt install -y imagemagick
+- sudo apt install -y libwww-perl
+- sudo apt install -y libjson-perl
+- sudo apt install -y libxml-rss-perl
+- sudo apt install -y libxml-feed-perl
+- sudo apt install -y libhtml-parser-perl
+- sudo apt install -y libeccodes-dev
+- sudo apt install -y libg2c-dev
+- sudo apt install -y libpng-dev
+- pip install pygrib
+- pip install matplotlib
+- pip install numpy
+- sudo apt install -y python3-pyproj
+- sudo apt install -y libg2c-dev
+- sudo apt install -y libeccodes-dev
+- sudo apt install -y python3-numpy (optional - pip should be used)
+- sudo apt install -y python3-pyproj
+- sudo apt install -y python3-dev
 
 ## Prerequisites
 
