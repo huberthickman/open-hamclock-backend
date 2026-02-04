@@ -116,7 +116,7 @@ Note: Anything under maps/ is considered a "Core Map" in HamClock
 - [x] DRAP 
 - [x] Planetary Kp
 - [x] Solar flux
-- [ ] Amateur Satellites
+- [x] Amateur Satellites - see Known Issues
 - [ ] PSK Reporter WSPR
 - [ ] RBN
 - [x] PSK Reporter All
