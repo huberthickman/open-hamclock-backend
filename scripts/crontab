@@ -46,3 +46,4 @@
 */5 * * * * /opt/hamclock-backend/scripts/bzgen.sh >> /opt/hamclock-backend/logs/bzgen.log 2>&1
 */3 * * * * /opt/hamclock-backend/scripts/gen_drap.sh >> /opt/hamclock-backend/logs/gen_drap.log 2>&1
 * * * * * /opt/hamclock-backend/scripts/genxray.pl >> /opt/hamclock-backend/logs/genxray.log 2>&1
+*/10 * * * * flock -n /opt/hamclock-backend/tmp/gen_sdo_maps.lock /usr/bin/perl /opt/hamclock-backend/scripts/gen_sdo_maps.pl >>/opt/hamclock-backend/tmp/gen_sdo_maps.log 2>&1
