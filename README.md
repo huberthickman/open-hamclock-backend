@@ -6,7 +6,7 @@ I wish the Downey family my deepest condolences
 This is a WIP.
 
 ## License
-MIT - this is free. Not for commercial use
+MIT
 
 ## Vision
 The goal is to make this as a drop-in replacement for the HamClock backend by replicating the same client/server responses with Perl CGI scripting and static files. We don't have access to the backend server source code so this is completely created by looking at the interfaces. To allow existing HamClock's running on Arduino to continue to work, we will setup a local DNS sinkhole to redirect to your local backend running at your home or office. Or, the HamClock client may be modified to point to a new central server permanently or use the built-in -b option
