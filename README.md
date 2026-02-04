@@ -47,7 +47,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [x] ONTA/onta.txt
 - [ ] contests/contests311.txt (this may stay broken until an agreement is made based on the site's ToS https://www.contestcalendar.com/terms.php)
 - [x] dxpeds/dxpeditions.txt
-- [ ] NOAASpaceWX/noaaswx.txt
+- [x] NOAASpaceWX/noaaswx.txt
 
 ### Dynamic Map Files
 - [x] maps/map-D-2640x1320-Countries.bmp.z - this is just a static map of the world, won't change often
@@ -200,6 +200,7 @@ Most cron-jobs will log to /opt/hamclock-backend/logs
 - Every hour: /opt/hamclock-backend/scripts/update_drap_maps.sh
 - Every hour: /opt/hamclock-backend/scripts/gen_dst.sh
 - Every 30 minutes: /opt/hamclock-backend/scripts/gen_aurora.sh
+- Every 30 minutes: /opt/hamclock-backend/scripts/gen_noaaswx.sh
 - Every 5 minutes: /opt/hamclock-backend/scripts/gen_onta.pl
 - Every 5 minutes: /opt/hamclock-backend/scripts/bzgen.sh
 - Every 3 minutes: /opt/hamclock-backend/scripts/gen_drap.sh
