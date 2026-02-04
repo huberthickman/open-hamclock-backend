@@ -132,8 +132,8 @@ Images with N means Night and D means Day
 - sudo apt install -y python3-numpy (optional - pip should be used)
 - sudo apt install -y python3-pyproj
 - sudo apt install -y python3-dev
-- sudo apt install -y build-essential gfortran gcc make libc6-dev \
-  libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget (needed for VOACAPL)
+- sudo apt install -y build-essential gfortran gcc make libc6-dev \\\
+libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget (needed for VOACAPL)
 - pip install pygrib
 - pip install matplotlib
 - pip install numpy
