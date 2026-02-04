@@ -58,6 +58,8 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [x] NOAASpaceWX/noaaswx.txt
 
 ### Dynamic Map Files
+Note: Anything under maps/ is considered a "Core Map" in HamClock
+
 - [x] maps/map-D-2640x1320-Countries.bmp.z - this is just a static map of the world, won't change often
 - [x] maps/map-N-2640x1320-Countries.bmp.z - this is just a static map of the world, won't change often
 - [x] maps/map-D-660x330-Clouds.bmp.z
