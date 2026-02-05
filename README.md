@@ -28,10 +28,11 @@ This project generates map and data artifacts in the same formats expected by th
 
 ## Compatibility
 - [ ] Ubuntu 22.x LTS
+- [ ] Ubuntu 24 AWS AMI
 - [ ] Debian 13.3 
 - [ ] Raspberry Pi
 - [ ] Windows Subsystem for Linux
-- [ ] Inovato Quadro
+- [ ] Inovato Quadra
 - [ ] Mac 
 
 ## Project Completion Status
