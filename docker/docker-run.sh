@@ -1,1 +1,2 @@
-docker run -ti --rm --net hamclock --ip=172.19.0.3 -d --name=hamclock-be hamclock-be:test
+# this will be a docker-compose file.
+docker run -ti --rm --net hamclock -d --name=hamclock-be hamclock-be:test
