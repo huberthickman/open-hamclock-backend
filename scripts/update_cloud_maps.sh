@@ -19,7 +19,7 @@ FTP_DIR="ftp://public.sos.noaa.gov/rt/sat/linear/raw/"
 PATTERN='^linear_rgb_cyl_[0-9]{8}_[0-9]{4}\.jpg$'
 
 # Night transform (tunable)
-# Default values are what you used for 660x330.
+# Default values are what we used for 660x330.
 NIGHT_MULT="${NIGHT_MULT:-0.39}"
 NIGHT_ADD="${NIGHT_ADD:-8}"
 
