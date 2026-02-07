@@ -92,7 +92,7 @@ DEFAULT_SIZES=( \
 )
 ```
 
-## Starting HamClock
+## Starting HamClock with OHB Local Install
 HamClock is hard-coded to use the clearskyinstitute.com URL. You can override to use a new backend by starting HamClock with the -b option
 
 ### Localhost (if running OHB adjacent to your existing HamClock client such as Raspberry Pi)
@@ -101,7 +101,7 @@ hamclock -b localhost:80
 ```
 Note: Depending on where you installed HamClock application, the path may be different. If you followed the instructions [here](https://qso365.co.uk/2024/05/how-to-set-up-a-hamclock-for-your-shack/), then it will be installed in /usr/local/bin.
 
-### Different Central Server
+### Starting HamClock with OHB Central Install
 ```bash
 hamclock -b \<central-server-ip-or-host\>:80
 ```
