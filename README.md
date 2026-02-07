@@ -34,7 +34,7 @@ This project generates map and data artifacts in the same formats expected by th
 ## Known Issues
 - Satellite planning page will cause HamClock to fail. Error message refers to a SatTool name lookup issue
 - IP Geolocation will not work if API key not set. To fix, set API key in fetchIPGeoloc.pl
-- Root directories missing on install. Manually create cache, tmp, and logs if missing
+- Root directories missing on install. Manually create cache, tmp, tmp/psk-cache, and logs if missing
 - One or more SDO images may report 'File is not BMP'. If this is the case, try switching to a different image temporarily
 - Raspberry Pi CPU Spikes due to image generation - requires a feature to generate smaller size imagery for small form factor PCs
 
