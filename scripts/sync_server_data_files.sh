@@ -63,8 +63,7 @@ for file in "${FILES[@]}"; do
     # 4. Download
     # -sSL: Silent, show errors, follow redirects
     # -f: Fail on server errors (don't save 404 pages)
-    # -z: Only download if remote is newer than local
-    curl -sSLf -z "$REL_PATH" -o "$REL_PATH" "${REMOTE_URL}/${REL_PATH}"
+    curl -sSLf -o "$REL_PATH" "${REMOTE_URL}/${REL_PATH}"
     
 	# Change ownership of data file to www-data
     chown www-data:www-data "$REL_PATH" 
