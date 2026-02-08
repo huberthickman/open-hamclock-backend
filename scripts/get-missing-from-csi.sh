@@ -20,10 +20,38 @@ awk -v Date="$(date -d'1 hour ago' +'%d/%b/%Y:%H:%M:%S')" '{
   }
 }' | cut -d\"  -f2 | cut -d " " -f 2 | sort | uniq | \
 while IFS= read -r url || [[ -n "$url" ]]; do
+    # skip if it was calling a cgi script
+    [[ "$url" == *".pl"* ]] || [[ "$url" == *".sh"* ]] && continue
     echo $url >> $SOURCE_FILE
 done
 sort -uo $SOURCE_FILE $SOURCE_FILE
 
+# check if the current file exists and was pulled by this script or generate
+# if not, clean it up
+cat /dev/null > $SOURCE_FILE.tmp
+while IFS= read -r line || [[ -n "$line" ]]; do
+    KEEP_FILE=yes
+    OUT_FILE=${OUT}${line}
+    if [ -e $OUT_FILE -a -e $OUT_FILE.md5 ]; then
+        LAST_MD5="$(cat $OUT_FILE.md5)"
+        CURRENT_MD5="$(md5sum $OUT_FILE)"
+        if [ "$LAST_MD5" != "$CURRENT_MD5" ]; then
+            KEEP_FILE=no
+        fi
+    elif [ ! -e $OUT_FILE -a ! -e $OUT_FILE.md5 ]; then
+        KEEP_FILE=yes
+    elif [ ! -e $OUT_FILE -o ! -e $OUT_FILE.md5 ]; then
+        KEEP_FILE=no
+    fi
+    if [ $KEEP_FILE == yes ]; then
+        echo $line >> $SOURCE_FILE.tmp
+    else
+        rm -f $OUT_FILE $OUT_FILE.md5
+    fi
+done < $SOURCE_FILE
+mv $SOURCE_FILE.tmp $SOURCE_FILE
+
+# get the file
 while IFS= read -r line || [[ -n "$line" ]]; do
     URL=${REMOTE_HOST}${line}
     OUT_FILE=${OUT}${line}
@@ -31,5 +59,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     RETVAL=$?
     if [ $RETVAL -ne 0 ]; then
         echo "Failed to download from $URL" >&2
+    else
+        md5sum $OUT_FILE > $OUT_FILE.md5
     fi
 done < $SOURCE_FILE
