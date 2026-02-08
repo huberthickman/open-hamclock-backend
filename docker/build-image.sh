@@ -47,5 +47,5 @@ echo
 echo "If this is the first time you are running OHB, run setup first:"
 echo "    docker-ohb-setup.sh"
 echo
-echo "To start the container, launch with docker-compose:"
-echo "    docker-compose up -d"
+echo "To start the container, launch with docker compose:"
+echo "    docker compose up -d"

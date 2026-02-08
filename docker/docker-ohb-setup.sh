@@ -30,8 +30,8 @@ setup() {
     create_volume
 
     echo
-    echo "Done! When you are ready, bring up the container with docker-compose:"
-    echo "  docker-compose up -d"
+    echo "Done! When you are ready, bring up the container with docker compose:"
+    echo "  docker compose up -d"
 }
 
 rm_setup() {
@@ -56,7 +56,7 @@ check_was_setup() {
         echo "OHB prerequisites were previously set up."
         echo
         echo "If you want to remove the OHB configuration, run:"
-        echo " docker-compose down -v"
+        echo " docker compose down -v"
         echo " ./$THIS rm"
         exit 1
     fi
