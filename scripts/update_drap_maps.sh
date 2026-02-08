@@ -6,17 +6,6 @@ export LC_ALL=C
 
 OUTDIR="/opt/hamclock-backend/htdocs/ham/HamClock/maps"
 
-#SIZES=(
-#  "660x330"
-#  "1320x660"
-#  "1980x990"
-#  "2640x1320"
-#  "3960x1980"
-#  "5280x2640"
-#  "5940x2970"
-#  "7920x3960"
-#)
-
 # Load unified size list
 # shellcheck source=/dev/null
 source "/opt/hamclock-backend/scripts/lib_sizes.sh"
@@ -160,10 +149,17 @@ for wh in "${SIZES[@]}"; do
   final_png="$TMPDIR/drap_${W}x${H}_final.png"
   raw_rgb="$TMPDIR/drap_${W}x${H}.rgb"
 
-  convert "$src_png" -alpha off -colorspace sRGB -resize "${W}x${H}!" "$norm_png"
-  convert "$norm_png" -crop "${CROP_W}x${CROP_H}+${CROP_X}+${CROP_Y}" +repage "$crop_png"
-  convert "$crop_png" -resize "${W}x${H}!" "$final_png"
-  convert "$final_png" -alpha off -colorspace sRGB -depth 8 "rgb:$raw_rgb"
+  convert "$src_png" \
+  -alpha off \
+  -set gamma 1.0 \
+  -colorspace sRGB \
+  -crop "${CROP_W}x${CROP_H}+${CROP_X}+${CROP_Y}" +repage \
+  -filter point \
+  -interpolate nearest \
+  -resize "${W}x${H}!" \
+  "$final_png"
+
+  convert "$final_png" RGB:"$raw_rgb"
 
   day_tmp="$TMPDIR/map-D-${W}x${H}-DRAP-S.bmp"
   night_tmp="$TMPDIR/map-N-${W}x${H}-DRAP-S.bmp"
