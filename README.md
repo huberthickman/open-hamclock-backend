@@ -32,6 +32,8 @@ The goal is to make this as a drop-in replacement for the HamClock backend by re
 This project generates map and data artifacts in the same formats expected by the HamClock client (e.g. zlib compressed BMP RGB565 map tiles) to support interoperability. This project is not affiliated with or endorsed by the original HamClock project or any third party. Data products are derived from public upstream sources such as NOAA SWPC and NASA
 
 ## Known Issues
+[Active Issues](https://github.com/BrianWilkinsFL/open-hamclock-backend/issues)
+
 - Satellite planning page will cause HamClock to fail. Error message refers to a SatTool name lookup issue. This seems to only happen if two satellites are not selected by the user. To the best of our knowledge, this is a HamClock bug
 - IP Geolocation will not work if API key not set. To fix, set API key in fetchIPGeoloc.pl
 - Root directories missing on install. Manually create cache, tmp, tmp/psk-cache, and logs if missing
@@ -141,7 +143,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [x] esats/esats.txt
 - [x] solarflux/solarflux-history.txt
 - [x] ssn/ssn-history.txt
-- [x] solar-flux/solarflux-99.txt (this requires a local cache to be built up - I made a bootstrap script)
+- [x] solar-flux/solarflux-99.txt
 - [x] geomag/kindex.txt
 - [x] dst/dst.txt
 - [x] drap/stats.txt
@@ -158,10 +160,10 @@ Note: Anything under maps/ is considered a "Core Map" in HamClock
 - [x] maps/Clouds*
 - [x] maps/Countries*
 - [x] maps/Wx-mB*
-- [ ] maps/Aurora (Partial Sizes)
+- [ ] maps/Aurora
 - [x] maps/DRAP
-- [ ] maps/MUF-RT (Partial Sizes)
-- [ ] maps/Terrain (Partial Sizes)
+- [x] maps/MUF-RT
+- [x] maps/Terrain
 - [x] SDO/*
 
 ### Dynamic Web Endpoints
@@ -182,32 +184,27 @@ Note: Anything under maps/ is considered a "Core Map" in HamClock
 - [x] ham/HamClock/cty/cty_wt_mod-ll-dxcc.txt - Country/prefix database with lat/lon
 - [x] ham/HamClock/NOAASpaceWx/rank2_coeffs.txt
 
-### Miscellaneous
-- [x] zlib decompress utilty script
-- [ ] VOACAP map generator
-
 ## Integration Testing Status
-- [x] GOES-16 X-Ray Pane
-- [x] Countries map
-- [x] Terrain map
-- [x] DRAP map
-- [x] SDO imagery
-- [ ] MUF-RT
-- [x] Weather map
-- [x] Clouds map
-- [x] Aurora Day
-- [ ] Aurora Night
-- [x] Parks on the Air
-- [x] SSN
-- [x] Solar Wind
-- [x] DRAP 
-- [x] Planetary Kp
-- [x] Solar flux
-- [x] Amateur Satellites - see Known Issues
+- [x] GOES-16 X-Ray
+- [x] Countries map download
+- [x] Terrain map download
+- [x] DRAP map generation, download, and display
+- [x] SDO generation, download, and display
+- [x] MUF-RT map generation, download, and display
+- [x] Weather map generation, download, and display
+- [x] Clouds map generation, download, and display
+- [ ] Aurora map generation, download, and display
+- [ ] Aurora map generation, download, and display
+- [x] Parks on the Air generation, pull and display
+- [x] SSN generation, pull, and display
+- [x] Solar wind generation, pull and display
+- [x] DRAP data generation, pull and display
+- [x] Planetary Kp data generation, pull and display
+- [x] Solar flux data generation, pull and display
+- [x] Amateur Satellites data generation, pull and display
 - [ ] PSK Reporter WSPR
 - [ ] VOACAP
 - [ ] RBN
-- [x] PSK Reporter All
 
 ## Requirements and Install
 
