@@ -1,12 +1,12 @@
 services:
   web:
-    container_name: __IMAGE_BASE__
+    container_name: __CONTAINER__
     image: __IMAGE__
     restart: unless-stopped
     networks:
-      - __IMAGE_BASE__
+      - ohb
     ports:
-      - :80:80
+      - :__HTTP_PORT__:80
     volumes:
       - ohb-htdocs:/opt/hamclock-backend/htdocs
     healthcheck:
@@ -19,14 +19,14 @@ services:
         max-file: "2"
 
 networks:
-  __IMAGE_BASE__:
+  ohb:
     driver: bridge
-    name: __IMAGE_BASE__
+    name: ohb
     enable_ipv6: true
     ipam:
      driver: default
     driver_opts:
-      com.docker.network.bridge.name: __IMAGE_BASE__
+      com.docker.network.bridge.name: ohb
 
 volumes:
   ohb-htdocs:
