@@ -69,29 +69,31 @@ if (defined $lat && defined $lng) {
 
             if ($s->{success}) {
                 my $sd = eval { decode_json($s->{content}) };
-                my $station = $sd->{features}->[0]->{properties}->{stationIdentifier};
+                for my $station (@{ $sd->{features} }) {
+                    if ($station->{properties}->{stationIdentifier}) {
+                        my $stationIdentifier = $station->{properties}->{stationIdentifier};
+                        my $o = $UA->get(
+                            "https://api.weather.gov/stations/$stationIdentifier/observations/latest"
+                        );
 
-                if ($station) {
-                    my $o = $UA->get(
-                        "https://api.weather.gov/stations/$station/observations/latest"
-                    );
+                        if ($o->{success}) {
+                            my $od = eval { decode_json($o->{content}) };
+                            my $p = $od->{properties};
 
-                    if ($o->{success}) {
-                        my $od = eval { decode_json($o->{content}) };
-                        my $p = $od->{properties};
+                            $wx{temperature_c}    = val($p->{temperature}->{value});
+                            $wx{humidity_percent} = val($p->{relativeHumidity}->{value});
+                            $wx{wind_speed_mps}   = val($p->{windSpeed}->{value});
+                            $wx{wind_dir_name}    = deg_to_cardinal(val($p->{windDirection}->{value}));
 
-                        $wx{temperature_c}    = val($p->{temperature}->{value});
-                        $wx{humidity_percent} = val($p->{relativeHumidity}->{value});
-                        $wx{wind_speed_mps}   = val($p->{windSpeed}->{value});
-                        $wx{wind_dir_name}    = deg_to_cardinal(val($p->{windDirection}->{value}));
+                            if (defined $p->{seaLevelPressure}->{value}) {
+                                $wx{pressure_hPa} =
+                                    sprintf("%.0f", $p->{seaLevelPressure}->{value} / 100);
+                            }
 
-                        if (defined $p->{seaLevelPressure}->{value}) {
-                            $wx{pressure_hPa} =
-                                sprintf("%.0f", $p->{seaLevelPressure}->{value} / 100);
+                            $wx{conditions} = $p->{textDescription} // "";
+                            $wx{clouds}     = $p->{textDescription} // "";
+                            last;
                         }
-
-                        $wx{conditions} = $p->{textDescription} // "";
-                        $wx{clouds}     = $p->{textDescription} // "";
                     }
                 }
             }
