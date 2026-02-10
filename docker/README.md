@@ -55,13 +55,13 @@ cd open-hamclock-backend/docker
 
 Ensure you are on the release you want to build. For example:
 ```
-git tag
+git tag # lists the available tags
 git checkout 1.0
 ```
 
 Create a docker compose file:
 ```
-# check the options
+# the help outputs options
 ./build-image.sh -h
 # create the compose file
 ./build-image.sh -c
@@ -69,7 +69,7 @@ Create a docker compose file:
 
 The output of the last command will tell you the following. If it's your first time running OHB, you'll need to create the storage space for it:
 ```
-./docker-ohb-setup.sh"
+./docker-ohb-setup.sh
 ```
 
 Finally, start it!
@@ -77,17 +77,19 @@ Finally, start it!
 docker compose up -d
 ```
 
-If it's the first time you've run it, it can take a while to populate the data. Nearly all of the current data should be ready in around 15-30 minutes depending on internet speed. In some cases history has to accumulate for all the graphs to look right which could take days. But while you wait days, you'll have a fully functioning hamclock.
+If it's the first time you've run it, it can take a while to populate the data. Nearly all of the current data should be ready in around 15-30 minutes depending on internet speed. In some cases history has to accumulate for all the graphs to look right which could take days. But while you wait days, you'll have a fully functioning hamclock with your own custom OHB.
+
+Go to the project readme and look for information about the '-b' otion to hamclock. This will make your hamclock pull from your OHB.
 
 # Install OHB with your own image
 ## The steps if you want to create your own image
-The steps to create your own image are almost exactly the same. The difference is when runing the build-image.sh script, don't pass it '-c'. The '-c' option means create only the docker-compose file. If you remove that option, it will do the full image creation:
+The steps to create your own image are almost exactly the same as using the official image. The difference is when runing the build-image.sh script, don't pass it '-c'. The '-c' option means create only the docker-compose file. If you remove that option, it will do the full image creation:
 ```
 ./build-image.sh
 ```
 Optionally you can pass it the -p option to customize the port or run -c later with the -p option to change it. The port is not in the image, it's in the compose file.
 
-You still need to get the git respository, pick out your preferred branch or release, do the setup (if it's your first time) and docker compose up. So basically follow the steps in the last section except leave out '-c'.
+You still need to clone the git respository, pick out your preferred branch or release, do the setup (if it's your first time) and docker compose up. So basically follow the steps in the last section except leave out '-c'.
 
 ## Other options
 In some cases port 80 might not be available on your OHB server. You can customize the port using the -p option. In the steps above, create the compose file again providing the -p option with your preferred port and run the docker compose up command again.
