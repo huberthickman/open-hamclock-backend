@@ -36,6 +36,7 @@ my %wx = (
     pressure_hPa     => -999,
     pressure_chg     => -999,
     humidity_percent => -999,
+    dewpoint         => -999,
     wind_speed_mps   => 0,
     wind_dir_name    => "N",
     clouds           => "",
@@ -82,6 +83,7 @@ if (defined $lat && defined $lng) {
 
                             $wx{temperature_c}    = val($p->{temperature}->{value});
                             $wx{humidity_percent} = val($p->{relativeHumidity}->{value});
+                            $wx{dewpoint}         = val($p->{dewpoint}->{value});
                             $wx{wind_speed_mps}   = val($p->{windSpeed}->{value});
                             $wx{wind_dir_name}    = deg_to_cardinal(val($p->{windDirection}->{value}));
 
@@ -113,6 +115,7 @@ print "temperature_c=$wx{temperature_c}\n";
 print "pressure_hPa=$wx{pressure_hPa}\n";
 print "pressure_chg=$wx{pressure_chg}\n";
 print "humidity_percent=$wx{humidity_percent}\n";
+print "dewpoint=$wx{dewpoint}\n";
 print "wind_speed_mps=$wx{wind_speed_mps}\n";
 print "wind_dir_name=$wx{wind_dir_name}\n";
 print "clouds=$wx{clouds}\n";
