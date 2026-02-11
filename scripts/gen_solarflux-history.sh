@@ -8,7 +8,7 @@ YEAR=$(date -d "last month" +%Y)
 MONTH=$(date -d "last month" +%m)
 TARGET_MONTH="${YEAR}${MONTH}"
 
-SEED_FILE="/opt/hamclock-backend/htdocs/ham/HamClock/solar-flux/solarflux-seed.txt"
+SEED_FILE="/opt/hamclock-backend/htdocs/ham/HamClock/solar-flux/solar-flux-history-1945-2025.txt"
 OUTPUT="/opt/hamclock-backend/htdocs/ham/HamClock/solar-flux/solarflux-history.txt"
 URL="https://www.spaceweather.gc.ca/solar_flux_data/daily_flux_values/fluxtable.txt"
 
