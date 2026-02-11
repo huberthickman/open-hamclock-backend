@@ -39,7 +39,7 @@
 35 0 * * * /opt/hamclock-backend/scripts/merge_dxpeditions.pl >> /opt/hamclock-backend/logs/merge_dxpeditions.log 2>&1
 5 */8 * * * /opt/hamclock-backend/scripts/gen_contest-calendar.sh >> /opt/hamclock-backend/logs/gen_contest-calendar.log 2>&1
 17 */12 * * * /opt/hamclock-backend/scripts/gen_kindex.pl >> /opt/hamclock-backend/logs/gen_kindex.log 2>&1
-0 */3 * * * /opt/hamclock-backend/scripts/build_esats.pl >> /opt/hamclock-backend/logs/build_esats.log 2>&1
+0 */6 * * * /opt/hamclock-backend/scripts/fetch_tle.sh >> /opt/hamclock-backend/logs/fetch_tle.log 2>&1
 6 */1 * * * /opt/hamclock-backend/scripts/gen_dst.sh >> /opt/hamclock-backend/logs/gen_dst.log 2>&1
 */30 * * * * /opt/hamclock-backend/scripts/gen_aurora.sh >> /opt/hamclock-backend/logs/gen_aurora.log 2>&1
 */30 * * * * /opt/hamclock-backend/scripts/gen_noaaswx.sh >> /opt/hamclock-backend/logs/gen_noaswxx.log 2>&1
