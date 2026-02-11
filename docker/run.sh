@@ -3,6 +3,7 @@
 # pull down latest server data files
 #/usr/sbin/runuser -u www-data /opt/sync_server_data_files.sh
 
+echo "This image is based on git: '$(cat hamclock-backend/git.version)'"
 echo "Start up time: $(date -u +%H:%M:%S)"
 
 # start the web server

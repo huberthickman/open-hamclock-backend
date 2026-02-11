@@ -11,8 +11,9 @@ if [ $? -ne 0 ]; then
     echo "NOTE: Not currently on a tag. Using 'latest'."
     echo
     TAG=latest
-    # should we use the git hash?
-    #TAG=$(git rev-parse --short HEAD)
+    GIT_VERSION=$(git rev-parse --short HEAD)
+else
+    GIT_VERSION=$TAG
 fi
 
 IMAGE=$IMAGE_BASE:$TAG
@@ -127,11 +128,13 @@ build_image() {
     echo
     echo "Building image for '$IMAGE_BASE:$TAG'"
     pushd "$HERE/.." >/dev/null
+    echo $GIT_VERSION > git.version
     if [ $MULTI_PLATFORM == true ]; then
         docker buildx build -t $IMAGE -f docker/Dockerfile --platform linux/amd64,linux/arm64 --push .
     else
         docker build -t $IMAGE -f docker/Dockerfile .
     fi
+    rm -f git.version
     RETVAL=$?
     popd >/dev/null
 }
