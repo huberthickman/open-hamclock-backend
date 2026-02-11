@@ -4,7 +4,7 @@ use warnings;
 
 use LWP::UserAgent;
 
-my $URL = 'https://services.swpc.noaa.gov/text/daily-solar-indices.txt';
+my $URL = 'https://spaceweather.gc.ca/solar_flux_data/daily_flux_values/fluxtable.txt';
 my $CACHE = '/opt/hamclock-backend/data/solarflux-cache.txt';
 my $MAX_DAYS = 90;
 
@@ -31,18 +31,18 @@ if (open my $fh, '<', $CACHE) {
 # Parse NOAA file
 for my $line (split /\n/, $resp->decoded_content) {
 
-    next if $line =~ /^[:#]/;
-    next unless $line =~ /^\d{4}\s+\d{2}\s+\d{2}/;
+    next if $line =~ /^[a-zA-Z-]/;
+    next unless $line =~ /^\d{8}\s+\d{6}/;
 
-    my ($Y,$m,$d,$flux) = (split /\s+/, $line)[0,1,2,3];
+    my ($Ymd,$time,$flux) = (split /\s+/, $line)[0,1,4];
     next unless defined $flux;
 
-    my $date = sprintf '%04d-%02d-%02d', $Y, $m, $d;
+    $Ymd =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
 
-    next if $seen{$date};
+    next if $seen{$Ymd.$time};
 
-    push @cache, [$date, $flux];
-    $seen{$date} = 1;
+    push @cache, [$Ymd, sprintf('%d', $flux) ];
+    $seen{$Ymd.$time} = 1;
 }
 
 # Sort and trim
