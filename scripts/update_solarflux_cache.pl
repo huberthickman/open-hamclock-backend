@@ -42,10 +42,10 @@ for my $line (split /\n/, $resp->decoded_content) {
 
     $Ymd =~ s/(\d{4})(\d{2})(\d{2})/$1-$2-$3/;
 
-    next if $seen{$Ymd.$time};
+    next if $seen{$Ymd."T".$time};
 
-    push @cache, [$Ymd, sprintf('%d', $flux) ];
-    $seen{$Ymd.$time} = 1;
+    push @cache, [$Ymd."T".$time, sprintf('%d', $flux) ];
+    $seen{$Ymd."T".$time} = 1;
 }
 
 # Get SFI predictions
@@ -66,12 +66,12 @@ for my $i (0 .. $#lines) {
         # values are date sfi data sfi ...
         # (Assuming format: Date Value Date Value Date Value)
         for my $j (0 .. 2) {
-            my ($Ymd,$flux) = (Time::Piece->strptime($fields[$j*2], "%d%b%y")->strftime("%Y-%m-%d"), $fields[$j*2+1])
-                if defined $fields[$j] && defined $fields[$j+1];
-            # need 3 values per day but we only get 1 - so thrice
-            push @cache, [$Ymd, sprintf('%d', $flux) ];
-            push @cache, [$Ymd, sprintf('%d', $flux) ];
-            push @cache, [$Ymd, sprintf('%d', $flux) ];
+            for my $k (0 .. 2) {
+                my ($Ymdtime,$flux) = (
+                        Time::Piece->strptime($fields[$j*2]." ".$k, "%d%b%y %H")->strftime("%Y-%m-%dT%H%M%S"), $fields[$j*2+1]
+                    ) if defined $fields[$j] && defined $fields[$j+1];
+                push @cache, [$Ymdtime, sprintf('%d', $flux) ];
+            }
         }
     }
 }
