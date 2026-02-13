@@ -23,7 +23,8 @@ https://discord.gg/k2Nmdjup
 - [ARNewsline.com](https://www.arnewsline.org/)
 - [PSKReporter](https://pskreporter.info/) by Phillip Gladstone
 - [WSPR Live](https://wspr.live/)
-- [WA7BNM Weekend Contests Calendar](https://www.contestcalendar.com/) 
+- [WA7BNM Weekend Contests Calendar](https://www.contestcalendar.com/)
+- [Amateur Radio Country Files](https://www.country-files.com/big-cty/)
 
 ## Vision
 The goal is to make this as a drop-in replacement for the HamClock backend by replicating the same client/server responses with Perl CGI scripting and static files. We don't have access to the backend server source code so this is completely created by looking at the interfaces. The goal is to allow for local or central install of OHB to keep all existing HamClock's from working beyond June 2026
