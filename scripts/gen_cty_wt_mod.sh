@@ -7,10 +7,14 @@ URL="https://www.country-files.com/cty/cty_wt_mod.dat"
 
 SOURCE_VERSION=$(curl -s $URL | head -n 3 | sed -n 's/^.*RELEASE\s\+\([0-9.]\+\).*$/\1/p')
 EXTRACTED_TIME=$(date "+%a %b %d %H:%M:%S %YZ")
-PREV_SOURCE_VERSION=$(head -n 3 $OUTFILE | sed -n 's/^.*RELEASE\s\+\([0-9.]\+\).*$/\1/p')
+if [ -e $OUTFILE ]; then
+    PREV_SOURCE_VERSION=$(head -n 3 $OUTFILE | sed -n 's/^.*RELEASE\s\+\([0-9.]\+\).*$/\1/p')
+else
+    PREV_SOURCE_VERSION='No previous version'
+fi
 
 if [ "$SOURCE_VERSION" == "$PREV_SOURCE_VERSION" ]; then
-    echo "$THIS: no new version. ours: $PREV_SOURCE_VERSION, theirs: $SOURCE_VERSION"
+    echo "$THIS: no new version. ours: '$PREV_SOURCE_VERSION', theirs: '$SOURCE_VERSION'"
     exit 0
 fi
 
