@@ -14,6 +14,7 @@ GIT_TAG=$(git describe --exact-match --tags 2>/dev/null)
 GIT_VERSION=$(git rev-parse --short HEAD 2>/dev/null)
 CONTAINER=${IMAGE_BASE##*/}
 DEFAULT_HTTP_PORT=:80
+REQUEST_DOCKER_PULL=false
 RETVAL=0
 
 main() {
@@ -37,8 +38,7 @@ main() {
             upgrade_ohb
             ;;
         full-reset)
-            shift
-            get_compose_opts "$@"
+            shift && get_compose_opts "$@"
             recreate_ohb
             ;;
         remove)
@@ -46,10 +46,7 @@ main() {
             ;;
         restart)
             shift && get_compose_opts "$@"
-            get_current_http_port
-            get_current_image_tag
-            docker_compose_down
-            docker_compose_up
+            docker_compose_restart
             ;;
         up)
             shift && get_compose_opts "$@"
@@ -60,8 +57,7 @@ main() {
             docker_compose_down
             ;;
         generate-docker-compose)
-            shift
-            get_compose_opts "$@"
+            shift && get_compose_opts "$@"
             generate_docker_compose
             ;;
         *)
@@ -213,8 +209,12 @@ check_ohb_installed() {
 upgrade_ohb() {
     check_docker_installed >/dev/null || return $?
 
+    get_current_http_port
+    get_current_image_tag
+
     echo "Upgrading OHB ..."
 
+    REQUEST_DOCKER_PULL=true
     echo "Starting the container ..."
     if docker_compose_up; then
         echo "Container started successfully."
@@ -261,8 +261,13 @@ check_dvc_created() {
 }
 
 docker_compose_up() {
+    [ $REQUEST_DOCKER_PULL == true ] && exec 3>&1
+
     docker compose -f <(docker_compose_yml) up -d
     RETVAL=$?
+
+    [ $REQUEST_DOCKER_PULL == true ] && REQUEST_DOCKER_PULL=false && exec 3>&-
+
     return $RETVAL
 }
 
@@ -286,6 +291,13 @@ docker_compose_down() {
     fi
     
     return $RETVAL
+}
+
+docker_compose_restart() {
+    get_current_http_port
+    get_current_image_tag
+    docker_compose_down || return $RETVAL
+    docker_compose_up
 }
 
 generate_docker_compose() {
@@ -378,6 +390,7 @@ determine_port() {
     # third precedence
     else
         HTTP_PORT=$DEFAULT_HTTP_PORT
+
     fi
 
     # if there was a :, it was probably IP:PORT; otherwise make sure there's a colon for port only
@@ -408,6 +421,7 @@ determine_tag() {
     # forth precedence
     else
         TAG=$DEFAULT_TAG
+
     fi
 }
 
@@ -416,8 +430,17 @@ docker_compose_yml() {
 
     determine_tag
     IMAGE=$IMAGE_BASE:$TAG
-    # FUNCNAME is a stack of nested function calls
-    [ "$TAG" == "$CURRENT_TAG"  -a "${FUNCNAME[2]}" == upgrade_ohb ] && docker pull $IMAGE
+
+    # if you want a docker pull, you need to send stdout somewhere else because it's being used
+    # for the docker-compose yml file. Docker pull's output will corrupt the yml file. We might 
+    # want the pull output. Setup and tear down the call to this function like this:
+    # REQUEST_DOCKER_PULL=true && exec >&3
+    # docker_compose_yml
+    # REQUEST_DOCKER_PULL=false && exec 3>&-
+    if [ "$TAG" == "$CURRENT_TAG"  -a "$REQUEST_DOCKER_PULL" == true ]; then
+        echo "Doing a docker pull of the image before docker compose." >&3
+        docker pull $IMAGE | sed 's/^/  /' >&3
+    fi
 
     docker_compose_yml_tmpl | 
         sed "s/__DOCKER_PROJECT__/$DOCKER_PROJECT/" |
@@ -463,7 +486,6 @@ volumes:
   ohb-htdocs:
     external: true
 EOF
-
 }
 
 main "$@"
