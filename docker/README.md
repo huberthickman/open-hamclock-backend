@@ -80,8 +80,14 @@ Check out options with help:
 ./manage-ohb-docker.sh help
 ```
 
-Do an install. Note that if you are running it from a git checkout, it will use the git tag or branch name. If you are running it standalone you should provide it the tag you want to install:
+Double check your docker version:
+```
+./manage-ohb-docker.sh check-docker
+```
 
+Do an install. Note that if you are running it from a git checkout, it will use the git tag or branch name. If you are running it standalone you should provide it the tag you want to install. It defaults to latest:
+
+```
 ./manage-ohb-docker.sh install -t 1.0
 ```
 
