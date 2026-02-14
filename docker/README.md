@@ -12,12 +12,12 @@ You haven't used docker before? Now's your chance! It's not hard and it's great 
 
 To get OHB to run in docker on your machine, you'll need to:
 - install docker on your machine (some distributions like Ubuntu 24.04 install very old docker so you might need to set up the docker repository)
-- get the source tree so you can make a docker-compose file
-- launch the container with the script from the source tree
+- get the OHB manager for docker
+- launch the container with the OHB manager
 
 ## Where are the docker images?
 
-We maintain docker images for the releases in Docker Hub. When you launch your container it will automatically pull the image from Docker Hub. If you built the image yourself (with the build scripts), it will automatically use yours.
+We maintain docker images for the releases in Docker Hub. When you launch your container it will automatically pull the image from Docker Hub. If you built the image yourself (with the build scripts), it will use yours.
 
 The build scripts let you create your own image. You might want to do this if you want to run bleeding edge code. Or maybe you just want to host your own.
 
@@ -41,7 +41,10 @@ Be sure you have a recent docker and docker compose installed before proceeding.
 # Install OHB with official images
 ## The steps if I want to use the official image from Docker Hub
 
-Get the source tree from GitHub. The git clone command below should have the right URL but you can check it by visiting https://github.com/BrianWilkinsFL/open-hamclock-backend, click on the green "Code" button and copy the https url.
+Either get the source tree from GitHub or download the manage-ohb-docker.sh script. Getting the source tree is only necessary if you plan to build your own custom image, which is covered down below.
+
+### get the GitHub source tree
+The git clone command below should have the right URL but you can check it by visiting https://github.com/BrianWilkinsFL/open-hamclock-backend, click on the green "Code" button and copy the https url.
 
 On your computer, clone the repository:
 ```
@@ -59,25 +62,43 @@ git tag # lists the available tags
 git checkout 1.0
 ```
 
-Create a docker compose file:
+### download the manager:
+Find the tag you want from git:
+```
+https://github.com/BrianWilkinsFL/open-hamclock-backend/tags
+```
+Navigate into the tag, download manage-ohb-docker.sh, and make it executable. Using curl might work like this:
+```
+curl -sO https://raw.githubusercontent.com/BrianWilkinsFL/open-hamclock-backend/refs/heads/main/docker/manage-ohb-docker.sh
+chmod +x manage-ohb-docker.sh
+```
+
+Check out options with help:
 ```
 # the help outputs options
-./build-image.sh -h
-# create the compose file
-./build-image.sh -c
+./manage-ohb-docker.sh help
 ```
 
-The output of the last command will tell you the following. If it's your first time running OHB, you'll need to create the storage space for it:
-```
-./docker-ohb-setup.sh
+Do an install. Note that if you are running it from a git checkout, it will use the git tag or branch name. If you are running it standalone you should provide it the tag you want to install:
+
+./manage-ohb-docker.sh install -t 1.0
 ```
 
-Finally, start it!
+When the script is done, you should have a running install of OHB! Try this:
 ```
-docker compose up -d
+curl -s http://127.0.0.1/ham/HamClock/version.pl
 ```
 
 If it's the first time you've run it, it can take a while to populate the data. Nearly all of the current data should be ready in around 60 minutes depending on internet speed. In some cases history has to accumulate for all the graphs to look right which could take days. But while you wait days, you'll have a fully functioning hamclock with your own custom OHB.
+
+You can track the data seeding process like this:
+```
+# ^C to get out
+docker logs -f open-hamclock-backend
+```
+
+
+CURRENTLY BEING UPDATED .... IGNORE BELOW
 
 Go to the project readme and look for information about the '-b' otion to hamclock. This will make your hamclock pull from your OHB.
 
