@@ -72,7 +72,7 @@ spinner $!
 sudo apt-get install -y \
 git jq curl perl lighttpd imagemagick \
 libwww-perl libjson-perl libxml-rss-perl libxml-feed-perl libhtml-parser-perl \
-libeccodes-dev libpng-dev libtext-csv-xs-perl librsvg2-bin ffmpeg \
+libeccodes-dev libpng-dev libtext-csv-xs-perl librsvg2-bin ffmpeg gmt gmt-gshhg gmt-dcw \
 python3 python3-venv python3-dev python3-requests python3-matplotlib build-essential gfortran gcc make libc6-dev \
 libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget logrotate >/dev/null &
 spinner $!
