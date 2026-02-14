@@ -49,34 +49,53 @@ echo "Rendering maps..."
 OUTDIR="/opt/hamclock-backend/htdocs/ham/HamClock/maps"
 mkdir -p "$OUTDIR"
 
+for DN in D N; do
+
 for SZ in "${SIZES[@]}"; do
-  BASE="$OUTDIR/aurora_${SZ}"
+  BASE="$OUTDIR/aurora_${DN}_${SZ}"
   PNG="${BASE}.png"
   PNG_FIXED="${BASE}_fixed.png"
-  BMP="$OUTDIR/map-D-${SZ}-Aurora.bmp"
-
+  BMP="$OUTDIR/map-${DN}-${SZ}-Aurora.bmp"
+  
   W=${SZ%x*}
   H=${SZ#*x}
 
-  echo "  -> $PNG"
+  echo "  -> BASE=$BASE"
+  echo "  -> PNG=$PNG"
+ 
   gmt begin "$BASE" png
     gmt coast -R0/360/-90/90 -JQ0/${W}p -Gblack -Sblack -A10000
+    # Day white veil (ONLY for D maps)
+    if [[ "$DN" == "D" ]]; then
+     gmt coast -R0/360/-90/90 -JQ0/${W}p -Gwhite -Swhite -A10000 -t85
+    fi
     gmt grdimage aurora.nc -C"$CPT" -Q -n+b -t40
     gmt coast -R0/360/-90/90 -JQ0/${W}p -W0.75p,white -N1/0.5p,white -A10000
   gmt end || { echo "gmt failed for $SZ"; continue; }
 
   convert "$PNG" -resize "${SZ}!" "$PNG_FIXED" || { echo "resize failed for $SZ"; continue; }
 
-  convert "$PNG_FIXED" -flip "$PNG_FIXED"
+#  convert "$PNG_FIXED" -flip "$PNG_FIXED"
 
-  echo "  -> $PNG_FIXED"
+  echo "  -> PNG_FIXED=$PNG_FIXED"
   convert "$PNG_FIXED" \
     -type TrueColor \
     -define bmp:subtype=RGB565 \
     BMP3:"$BMP" || { echo "bmp convert failed for $SZ"; continue; }
 
-  echo "  -> $BMP"
+  echo "  -> BMP=$BMP"
 
+# Force BMP to top-down (negative height) for HamClock
+python3 - <<EOF
+import struct
+
+with open("$BMP","r+b") as f:
+    f.seek(22)                 # biHeight offset
+    h = struct.unpack("<i", f.read(4))[0]
+    if h > 0:
+        f.seek(22)
+        f.write(struct.pack("<i", -h))
+EOF
 
 # Zlib compress (HamClock format)
 python3 - <<EOF
@@ -89,7 +108,10 @@ EOF
 
 done
 
+done
+
 rm -f aurora_native.nc aurora_dense.nc aurora.nc aurora.cpt ovation.xyz
+
 
 echo "Done."
 
