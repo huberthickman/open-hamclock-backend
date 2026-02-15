@@ -33,8 +33,6 @@ progress() {
   printf "${BLU}[%-50s] %d%%${NC}\n" "$(printf '#%.0s' $(seq 1 $((pct/2))))" "$pct"
 }
 
-clear
-
 cat <<'EOF'
 
    ██████╗ ██╗  ██╗██████╗

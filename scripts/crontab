@@ -45,7 +45,7 @@
 5 */8 * * * /opt/hamclock-backend/scripts/gen_contest-calendar.sh >> /opt/hamclock-backend/logs/gen_contest-calendar.log 2>&1
 17 */12 * * * /opt/hamclock-backend/scripts/gen_kindex.pl >> /opt/hamclock-backend/logs/gen_kindex.log 2>&1
 0 */6 * * * /opt/hamclock-backend/scripts/fetch_tle.sh >> /opt/hamclock-backend/logs/fetch_tle.log 2>&1
-6 */1 * * * /opt/hamclock-backend/scripts/gen_dst.sh >> /opt/hamclock-backend/logs/gen_dst.log 2>&1
+20,50 * * * * /opt/hamclock-backend/scripts/gen_dst.sh >> /opt/hamclock-backend/logs/gen_dst.log 2>&1
 # Give NOAA time to breathe
 2,32 * * * * /opt/hamclock-backend/scripts/gen_aurora.sh >> /opt/hamclock-backend/logs/gen_aurora.log 2>&1
 # Optional watchdog
@@ -60,7 +60,7 @@
 */5 * * * * OPENMETEO_CHUNK=200 OPENMETEO_REQS_PER_RUN=1 /usr/bin/perl /opt/hamclock-backend/scripts/update_world_wx.pl >>/opt/hamclock-backend/logs/worldwx.log 2>&1
 */30 * * * * /opt/hamclock-backend/scripts/update_muf_rt_maps.sh >> /opt/hamclock-backend/logs/update_muf_rt_maps.log 2>&1
 */10 * * * * /opt/hamclock-backend/scripts/update_cloud_maps.sh >> /opt/hamclock-backend/logs/update_cloud_maps.log 2>&1
-*/15 * * * * /opt/hamclock-backend/scripts/update_drap_maps.sh >> /opt/hamclock-backend/logs/update_drap_maps.log 2>&1
+*/10 * * * * /opt/hamclock-backend/scripts/update_drap_maps.sh >> /opt/hamclock-backend/logs/update_drap_maps.log 2>&1
 */15 * * * * /opt/hamclock-backend/scripts/update_aurora_maps.sh >> /opt/hamclock-backend/logs/update_aurora_maps.logs 2>&1
 
 # every 6 hours on the 15th minute - the data feed is only updated every 6 hours (00, 06, 12, and 18) daily
