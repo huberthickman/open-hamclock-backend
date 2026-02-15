@@ -200,8 +200,10 @@ check_ohb_installed() {
         echo
         if [ -n "$GIT_TAG" ]; then
             echo "  On a tagged release: '$GIT_TAG'"
-        else
+        elif [ -n "$GIT_VERSION" ]; then
             echo "  Not on a tagged release. git hash: '$GIT_VERSION'"
+        else
+            echo "  Not running from a git checkout."
         fi
     fi
 }
