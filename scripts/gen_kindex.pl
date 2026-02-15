@@ -15,8 +15,13 @@ my $URL = 'https://services.swpc.noaa.gov/text/daily-geomagnetic-indices.txt';
 my $TMPDIR = '/opt/hamclock-backend/tmp';
 my $OUT    = '/opt/hamclock-backend/htdocs/ham/HamClock/geomag/kindex.txt';
 
-# HamClock client expects exactly 92 3-hour Kp values (oldest -> newest)
-my $KP_NV  = 92;
+# HamClock client expects exactly 72 3-hour Kp values (oldest -> newest)
+# define KP_VPD 8 number of values per day
+# define KP_NHD 7 N historical days
+# define KP_NPD 2 N predicted days
+# define KP_NV ((KP_NHD+KP_NPD)*KP_VPD) total Kp values
+
+my $KP_NV  = 72;
 
 # Ensure directories exist
 my $out_dir = dirname($OUT);
