@@ -193,7 +193,7 @@ sudo mkdir -p \
  "$BASE/htdocs/ham/HamClock"
 
 #Fix www-data gmt execution error
-sudo mkdir /var/www/.gmt
+sudo mkdir -p /var/www/.gmt
 sudo chown www-data:www-data /var/www/.gmt
 sudo chmod 755 /var/www/.gmt
 
