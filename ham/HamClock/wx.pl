@@ -6,12 +6,19 @@ use HTTP::Tiny;
 use JSON::PP;
 
 my %weather_apis = (
-    'weather.gov'   => {'func' => \&weather_gov, 'attrib' => 'weather.gov'},
-    'open-meteo.com'    => {'func' => \&open_meteo, 'attrib' => 'open-mateo.com'},
-    'openweathermap.org'  => {'func' => \&open_weather, 'attrib' => 'openweathermap.org'},
+    'weather.gov' => {
+        'func' => \&weather_gov,
+        'attrib' => 'weather.gov',
+    }, 'open-meteo.com' => {
+        'func' => \&open_meteo,
+        'attrib' => 'open-mateo.com',
+        'apikey' => $ENV{'OPEN_METEO_API_KEY'} // "",
+    }, 'openweathermap.org' => {
+        'func' => \&open_weather,
+        'attrib' => 'openweathermap.org',
+        'apikey' => $ENV{'OPEN_WEATHER_API_KEY'} // "",
+    },
 );
-my $use_wx_api = 'open-meteo.com';
-#my $use_wx_api = 'weather.gov';
 
 my $UA = HTTP::Tiny->new(
     timeout => 5,
@@ -49,12 +56,12 @@ my %wx = (
     wind_dir_name    => "N",
     clouds           => "",
     conditions       => "",
-    attribution      => $weather_apis{$use_wx_api}->{'attrib'},
+    attribution      => "",
     timezone         => 0,
 );
 
 # -------------------------
-# NOAA pipeline
+# Get the weather
 # -------------------------
 if (defined $lat && defined $lng) {
 
@@ -62,7 +69,9 @@ if (defined $lat && defined $lng) {
     $wx{timezone} = approx_timezone_seconds($lng);
 
     # 1) points lookup
-    $weather_apis{$use_wx_api}->{'func'}->($lat, $lng, %wx);
+    if ( ! $weather_apis{'openweathermap.org'}->{'func'}->($lat, $lng, %wx) ) {
+        my $return = $weather_apis{'open-meteo.com'}->{'func'}->($lat, $lng, %wx);
+    }
 }
 
 hc_output(%wx);
@@ -132,6 +141,7 @@ sub weather_gov {
                             $wx{temperature_c}    = val($p->{temperature}->{value});
                             $wx{humidity_percent} = val($p->{relativeHumidity}->{value});
                             $wx{dewpoint}         = val($p->{dewpoint}->{value});
+                            $wx{dewpoint}         = calculate_dew_point($wx{temperature_c}, $wx{humidity_percent});
                             $wx{wind_speed_mps}   = val($p->{windSpeed}->{value});
                             $wx{wind_dir_name}    = deg_to_cardinal(val($p->{windDirection}->{value}));
 
@@ -140,8 +150,9 @@ sub weather_gov {
                                     sprintf("%.0f", $p->{seaLevelPressure}->{value} / 100);
                             }
 
-                            $wx{conditions} = $p->{textDescription} // "";
-                            $wx{clouds}     = $p->{textDescription} // "";
+                            $wx{conditions}  = $p->{textDescription} // "";
+                            $wx{clouds}      = $p->{textDescription} // "";
+                            $wx{attribution} = $weather_apis{'weather.gov'}->{'attrib'},
                             last;
                         }
                     }
@@ -178,8 +189,37 @@ sub open_meteo {
         $wx{clouds}           = val($pd->{current}->{cloud_cover});
         $wx{conditions}       = get_wmo_description(val($pd->{current}->{weather_code}));
         $wx{pressure_hPa}     = val($pd->{current}->{pressure_msl});
+        $wx{attribution} = $weather_apis{'open-meteo.com'}->{'attrib'};
+        return 1;
     } else {
         $wx{conditions}       = $p->{reason};
+        return 0;
+    }
+}
+
+sub open_weather {
+    my ($lat, $lng, $wx) = @_;
+    my $base_url = "https://api.openweathermap.org/data/2.5/weather";
+    my $get_lat_lng = "?lat=$lat&lon=$lng";
+    my $get_api = "&appid=$weather_apis{'openweathermap.org'}->{'apikey'}";
+    my $get_params = "&units=metric";
+
+    my $p = $UA->get($base_url.$get_lat_lng.$get_api.$get_params);
+    if ($p->{success}) {
+        my $pd = eval { decode_json($p->{content}) };
+        #$wx{city}             = $pd->{city}->{name};
+        $wx{temperature_c}    = val($pd->{main}->{temp});
+        $wx{humidity_percent} = val($pd->{main}->{humidity});
+        $wx{dewpoint}         = calculate_dew_point($wx{temperature_c}, $wx{humidity_percent});
+        $wx{wind_speed_mps}   = val($pd->{wind}->{speed});
+        $wx{wind_dir_name}    = deg_to_cardinal(val($pd->{wind}->{deg}));
+        $wx{clouds}           = val($pd->{clouds}->{all});
+        $wx{conditions}       = $pd->{weather}[0]->{description};
+        $wx{pressure_hPa}     = val($pd->{main}->{sea_level});
+        $wx{attribution} = $weather_apis{'openweathermap.org'}->{'attrib'},
+        return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -197,6 +237,15 @@ sub deg_to_cardinal {
     return "N" unless defined $deg;
     my @d = qw(N NE E SE S SW W NW);
     return $d[int((($deg % 360)+22.5)/45)%8];
+}
+
+sub calculate_dew_point {
+    my ($temp_c, $humidity) = @_;
+    # Standard constants for the Magnus-Tetens formula
+    my $a = 17.27;
+    my $b = 237.7;
+    my $alpha = (($a * $temp_c) / ($b + $temp_c)) + log($humidity/100.0);
+    return ($b * $alpha) / ($a - $alpha);
 }
 
 sub approx_timezone_seconds {

@@ -30,7 +30,7 @@ RUN cd /opt/hamclock-backend && \
     # \
     # set permissions \
     chown -R www-data:www-data . && \
-    chmod +x scripts/* prime_crontabs.sh /opt/run.sh && \
+    chmod +x scripts/* prime_crontabs.sh /opt/run.sh /opt/hamclock-backend/lighttpd-conf/env-gen.sh && \
     # \
     # fontconfig needs a writeable cache directory \
     mkdir -p /var/www/.fontconfig && \
