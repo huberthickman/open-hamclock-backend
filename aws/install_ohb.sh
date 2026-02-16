@@ -217,6 +217,8 @@ sudo /bin/sh -c '
 
 sudo chown www-data:www-data /opt/hamclock-backend/logs/*.log
 sudo chmod 0664 /opt/hamclock-backend/logs/*.log
+sudo chown www-data:www-data /opt/hamclock-backend/htdocs/ham/HamClock/geomag
+sudo chown www-data:www-data /opt/hamclock-backend/htdocs/ham/HamClock/Bz
 
 #Fix www-data gmt execution error
 sudo mkdir -p /var/www/.gmt
@@ -353,6 +355,36 @@ seed_spinner() {
   printf "\r${GRN}[✓] Done           ${NC}\n"
 }
 
+run_python_to_file() {
+  local f=$1
+  local out=$2
+  local tmp="${out}.tmp"
+  local log="$BASE/logs/${f%.py}.log"
+
+  echo -e "${YEL}Running $VENV/bin/python $f > $out${NC}"
+
+  # ensure parent dir exists and is writable by www-data
+  install -d -o www-data -g www-data "$(dirname "$out")"
+
+  # run in foreground so we can do atomic replace; capture stderr to log
+  if ! sudo -u www-data env \
+      HOME="$BASE/tmp" \
+      XDG_CACHE_HOME="$BASE/tmp" \
+      PIP_CACHE_DIR="$BASE/tmp/pip-cache" \
+      OHB_SIZES="$OHB_SIZES" \
+      PATH="$VENV/bin:$PATH" \
+      VIRTUAL_ENV="$VENV" \
+      "$VENV/bin/python" "$BASE/scripts/$f" >"$tmp" 2>>"$log"
+  then
+    echo "ERROR: $f failed; see $log" >&2
+    rm -f "$tmp"
+    return 1
+  fi
+
+  # atomic publish
+  mv -f "$tmp" "$out"
+}
+
 run_python() {
   local f=$1
   local log="$BASE/logs/${f%.py}.log"
@@ -407,7 +439,7 @@ run_perl gen_dxnews.pl
 run_perl gen_ng3k.pl
 run_perl merge_dxpeditions.pl
 run_sh  gen_contest-calendar.sh
-run_perl gen_kindex.pl
+run_python_to_file kindex_simple.py "$BASE/htdocs/ham/HamClock/geomag/kindex.txt"
 run_sh  update_cloud_maps.sh
 run_sh  update_drap_maps.sh
 run_sh  gen_dst.sh
