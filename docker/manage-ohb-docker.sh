@@ -263,33 +263,27 @@ check_dvc_created() {
 }
 
 docker_compose_up() {
-    [ $REQUEST_DOCKER_PULL == true ] && exec 3>&1
-
-    docker compose -f <(docker_compose_yml) up -d
+    docker_compose_yml && docker compose -f <(echo "$DOCKER_COMPOSE_YML") up -d
     RETVAL=$?
-
-    [ $REQUEST_DOCKER_PULL == true ] && REQUEST_DOCKER_PULL=false && exec 3>&-
 
     return $RETVAL
 }
 
 docker_compose_down() {
-    docker compose -f <(docker_compose_yml) down -v
+    docker_compose_yml && docker compose -f <(echo "$DOCKER_COMPOSE_YML") down -v
     RETVAL=$?
 
-    is_container_running
-    if [ $? -eq 0 ]; then
+    if is_container_exists; then
         RUNNING_PROJECT=$(docker inspect open-hamclock-backend | jq -r '.[0].Config.Labels."com.docker.compose.project"')
         if [ "$RUNNING_PROJECT" != "$DOCKER_PROJECT" ]; then
             echo "ERROR: this OHB was created with a different docker-compsose file. Please run"
-            echo "    'docker compose down -v'"
+            echo "    'docker stop $CONTAINER'"
+            echo "    'docker rm $CONTAINER'"
             echo "before running this utility."
         else
             echo "ERROR: OHB failed to stop."
         fi
         RETVAL=1
-    else
-        echo "OHB was not running."
     fi
     
     return $RETVAL
@@ -303,7 +297,7 @@ docker_compose_restart() {
 }
 
 generate_docker_compose() {
-    docker_compose_yml
+    docker_compose_yml && echo "$DOCKER_COMPOSE_YML"
 }
 
 remove_ohb() {
@@ -433,22 +427,19 @@ docker_compose_yml() {
     determine_tag
     IMAGE=$IMAGE_BASE:$TAG
 
-    # if you want a docker pull, you need to send stdout somewhere else because it's being used
-    # for the docker-compose yml file. Docker pull's output will corrupt the yml file. We might 
-    # want the pull output. Setup and tear down the call to this function like this:
-    # REQUEST_DOCKER_PULL=true && exec >&3
-    # docker_compose_yml
-    # REQUEST_DOCKER_PULL=false && exec 3>&-
     if [ "$TAG" == "$CURRENT_TAG"  -a "$REQUEST_DOCKER_PULL" == true ]; then
-        echo "Doing a docker pull of the image before docker compose." >&3
-        docker pull $IMAGE | sed 's/^/  /' >&3
+        echo "Doing a docker pull of the image before docker compose."
+        docker pull $IMAGE | sed 's/^/  /'
     fi
 
-    docker_compose_yml_tmpl | 
-        sed "s/__DOCKER_PROJECT__/$DOCKER_PROJECT/" |
-        sed "s|__IMAGE__|$IMAGE|" |
-        sed "s/__CONTAINER__/$CONTAINER/" |
-        sed "s/__HTTP_PORT__/$HTTP_PORT/"
+    # compose file in $DOCKER_COMPOSE_YML
+    IFS= DOCKER_COMPOSE_YML=$(
+        docker_compose_yml_tmpl | 
+            sed "s/__DOCKER_PROJECT__/$DOCKER_PROJECT/" |
+            sed "s|__IMAGE__|$IMAGE|" |
+            sed "s/__CONTAINER__/$CONTAINER/" |
+            sed "s/__HTTP_PORT__/$HTTP_PORT/"
+    )
 }
 
 docker_compose_yml_tmpl() {
