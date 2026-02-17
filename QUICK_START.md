@@ -23,7 +23,10 @@ sudo ls /opt/hamclock-backend/htdocs/ham/HamClock/maps | head
 If you see data and maps, OHB is running.
 
 ### Install in a container with Docker
-Download the manager utility that masks all the Docker details. Visit ```https://github.com/BrianWilkinsFL/open-hamclock-backend/releases``` and download the asset ```Manage Docker installs```.
+Download the manager utility that masks all the Docker details. Visit the releases page:
+
+👉 [Releases](https://github.com/BrianWilkinsFL/open-hamclock-backend/releases)
+and download the asset: **Manage Docker installs**.
 
 Make it executable:
 ```
