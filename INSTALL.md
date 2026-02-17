@@ -87,7 +87,7 @@ sudo crontab -u www-data -l | head
 ### API Keys
 Two services require API keys: openweathermaps.com and ipgeolocation.io.
 
-If openweathermaps doesn't get a key, HamClock will fall back to open-meteo.com. If ipgeolocation.io doesn't have a key, your HamCLock installation won't be able to pull up your location. Not the end of the world.
+If openweathermaps doesn't get a key, HamClock will fall back to open-meteo.com. If ipgeolocation.io doesn't have a key, installinga new HamCLock won't be able to pull up your location. Not the end of the world.
 
 If you have these keys, you can provide them to OHB by putting them into /opt/hamclock-backend/.env and formatting the contents like this:
 ```
