@@ -47,7 +47,7 @@ We are building a community-powered backend to keep HamClock running. \
 Discord is where we can collaborate, troubleshoot, and exchange ideas — no RF license required 😎 \
 https://discord.gg/wb8ATjVn6M
 
-## 🚀 Quick Start  
+## 🚀 Quick Start 👉 [Quick Start Guide](QUICK_START.md)
 ## 📦 Installation 👉 [Detailed installation instructions](INSTALL.md)
 ## 📊 Project Completion Status
 
@@ -61,18 +61,5 @@ Current highlights:
 • Remaining work focused on VOACAP + RBN endpoints  
 
 👉 Full artifact tracking and integration status:
-[PROJECT_STATUS.md](PROJECT_STATUS.md)
-## 🛠 Usage Examples  
+[PROJECT_STATUS.md](PROJECT_STATUS.md) 
 ## 🤝 Contributing
-
-## Enabling OHB Dashboard
-To enable OHB dashboard, it is a manual install while it is being developed. 
-
-```bash
- sudo cp /opt/hamclock-backend/lighttpd-conf/51-ohb-dashboard.conf /etc/lighttpd/conf-enabled/
- sudo lighttpd -t -f /etc/lighttpd/lighttpd.conf
- sudo service lighttpd force-reload
- sudo -u www-data cp /opt/hamclock-backend/ham/dashboard/* /opt/hamclock-backend/htdocs
-```
-Ensure all scripts are owned by www-data under /opt/hamclock-backend/htdocs
-
