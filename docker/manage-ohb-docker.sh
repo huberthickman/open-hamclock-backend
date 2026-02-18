@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# at release time, this value is set to the tagged release
+OHB_VERSION=latest
+
 OHB_HTDOCS_DVC=ohb-htdocs
 IMAGE_BASE=komacke/open-hamclock-backend
 
