@@ -345,14 +345,6 @@ sudo systemctl restart lighttpd
 
 echo -e "${GRN}lighttpd configured${NC}"
 
-# ---------- cron ----------
-STEP=$((STEP+1)); progress $STEP $STEPS
-echo -e "${BLU}==> Installing www-data crontab${NC}"
-
-sudo chmod 644 "$BASE/scripts/crontab"
-sudo -u www-data crontab "$BASE/scripts/crontab"
-sudo systemctl restart cron
-
 # ---------- logrotate ----------
 STEP=$((STEP+1)); progress $STEP $STEPS
 echo -e "${BLU}==> Installing logrotate config${NC}"
@@ -486,7 +478,7 @@ run_perl gen_onta.pl
 run_python  bz_simple.py
 run_sh  gen_drap.sh
 run_python xray_simple.py
-run_sh  update_muf_rt_maps.sh
+run_sh  kc2g_muf_heatmap.sh
 
 sudo chown -R www-data:www-data "$BASE"
 # ---------- footer ----------
@@ -504,6 +496,14 @@ if [[ "$HTTP_CODE" == "200" ]]; then
 else
   echo -e "${RED}[✗] HTTP $HTTP_CODE - Check lighttpd logs: sudo journalctl -u lighttpd -n 50${NC}"
 fi
+
+# ---------- cron ----------
+STEP=$((STEP+1)); progress $STEP $STEPS
+echo -e "${BLU}==> Installing www-data crontab${NC}"
+
+sudo chmod 644 "$BASE/scripts/crontab"
+sudo -u www-data crontab "$BASE/scripts/crontab"
+sudo systemctl restart cron
 
 IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 IP="${IP:-<unknown>}"
