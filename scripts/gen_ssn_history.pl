@@ -4,7 +4,7 @@ use warnings;
 use LWP::UserAgent;
 use File::Copy qw(move);
 
-my $URL = 'https://www.sidc.be/silso/DATA/SN_m_tot_V2.0.csv';
+my $URL = 'https://www.sidc.be/SILSO/DATA/SN_m_tot_V2.0.csv';
 my $OUT = '/opt/hamclock-backend/htdocs/ham/HamClock/ssn/ssn-history.txt';
 
 my $ua = LWP::UserAgent->new(
@@ -25,7 +25,7 @@ for my $line (split /\n/, $res->decoded_content) {
     my @f = split /;/, $line;
     next unless @f >= 4;
 
-    my ($year, $month, $ssn) = @f[0,1,3];
+    my ($year, $month, $ssn) = (int($f[0]), int($f[1]), $f[3]);
 
     # HamClock cutoff
     next if $year < 1900;
@@ -35,8 +35,8 @@ for my $line (split /\n/, $res->decoded_content) {
     # Keep Jan, Mar, May, Jul, Sep, Nov only
     next unless $month =~ /^(1|3|5|7|9|11)$/;
 
-    # Decimal year: year + (month - 1) / 6
-    my $decimal = sprintf("%.2f", $year + ($month - 1) / 6);
+    # Decimal year: year + (month - 1) / 12
+    my $decimal = sprintf("%.2f", $year + ($month - 1) / 12);
 
     push @rows, sprintf("%s %.1f", $decimal, $ssn);
 }
