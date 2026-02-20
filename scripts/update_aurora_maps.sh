@@ -23,11 +23,14 @@ with open("ovation.xyz","w") as f:
     for lon,lat,val in d["coordinates"]:
         if val <= 2:
             continue
-        if lon < 0:
-            lon += 360.0
+        # keep lon in -180/180
+        if lon > 180.0:
+            lon -= 360.0
         f.write(f"{lon:.6f} {lat:.6f} {val:.6f}\n")
-        if lon == 0.0:
-            f.write(f"360.000000 {lat:.6f} {val:.6f}\n")
+        # duplicate at both edges to avoid seam
+        if lon == -180.0 or lon == 180.0:
+            f.write(f"-180.000000 {lat:.6f} {val:.6f}\n")
+            f.write(f"180.000000 {lat:.6f} {val:.6f}\n")
 EOF
 
 echo "Gridding aurora once..."
@@ -35,12 +38,25 @@ echo "Gridding aurora once..."
 # nearneighbor with search radius of 3 degrees gives smooth edges
 # without spreading data far from actual aurora locations.
 # No grdfilter needed — avoids equatorial bleed entirely.
-gmt nearneighbor "$XYZ" -R0/360/-90/90 -I0.5 -S3 -Gaurora.nc
+gmt nearneighbor "$XYZ" -R-180/180/-90/90 -I0.25 -S3 -Lx -Gaurora_raw.nc
+gmt grdfilter aurora_raw.nc -Fg2 -D4 -Gaurora.nc
+gmt grdclip aurora.nc -Sb1/NaN -Gaurora_clipped.nc
 
-cat > aurora.cpt <<'EOF'
-0    0/0/0     1    0/0/0
-1    0/40/0    20   0/120/0
-20   0/120/0  100   0/255/0
+# Dynamically scale CPT to actual data max so bright neon always hits the peak
+# Use at least 20 as floor so CPT thresholds don't collapse on quiet days
+VMAX=$(gmt grdinfo aurora.nc -C | awk '{v=int($7); print (v>20)?v:20}')
+echo "Aurora vmax: $VMAX"
+
+V15=$(echo "$VMAX * 15 / 100" | bc)
+V40=$(echo "$VMAX * 40 / 100" | bc)
+V65=$(echo "$VMAX * 65 / 100" | bc)
+
+cat > aurora.cpt <<EOF
+0      0/0/0    1      0/0/0
+1      0/20/0   $V15   0/80/0
+$V15   0/80/0   $V40   0/160/0
+$V40   0/160/0  $V65   0/220/0
+$V65   0/220/0  $VMAX  1/251/0
 EOF
 
 # Write BMPv4 (BITMAPV4HEADER), 16bpp RGB565, top-down — matches ClearSkyInstitute format
@@ -109,19 +125,21 @@ for SZ in "${SIZES[@]}"; do
 
   W=${SZ%x*}
   H=${SZ#*x}
+  W2=$((W * 2))
 
   echo "  -> ${DN} ${SZ}"
 
   gmt begin "$BASE" png
-    gmt coast -R-180/180/-90/90 -JQ0/${W}p -Gblack -Sblack -A10000
+    gmt set MAP_FRAME_TYPE plain MAP_FRAME_AXES "" MAP_FRAME_PEN 0p MAP_GRID_PEN_PRIMARY 0p MAP_GRID_PEN_SECONDARY 0p MAP_GRID_CROSS_SIZE_PRIMARY 0p MAP_GRID_CROSS_SIZE_SECONDARY 0p
+    gmt coast -R-180/180/-90/90 -JQ0/${W2}p -G0/0/0 -S0/0/0 -A10000 --MAP_FRAME_AXES=
     if [[ "$DN" == "D" ]]; then
-      gmt coast -R-180/180/-90/90 -JQ0/${W}p -Gwhite -Swhite -A10000 -t85
+      gmt coast -R-180/180/-90/90 -JQ0/${W2}p -G72/72/72 -S72/72/72 -A10000 --MAP_FRAME_AXES=
     fi
-    gmt grdimage aurora.nc -Caurora.cpt -Q -n+b -t40
-    gmt coast -R-180/180/-90/90 -JQ0/${W}p -W0.75p,white -N1/0.5p,white -A10000
+    gmt grdimage aurora_clipped.nc -Caurora.cpt -Q -n+b --MAP_FRAME_AXES=
+    gmt coast -R-180/180/-90/90 -JQ0/${W2}p -W0.75p,white -N1/0.5p,white -A10000 --MAP_FRAME_AXES=
   gmt end || { echo "gmt failed for $SZ"; continue; }
 
-  convert "$PNG" -resize "${SZ}!" "$PNG_FIXED" || { echo "resize failed for $SZ"; continue; }
+  convert "$PNG" -filter Lanczos -resize "${SZ}!" "$PNG_FIXED" || { echo "resize failed for $SZ"; continue; }
 
   RAW="$GMT_USERDIR/aurora_${DN}_${SZ}.raw"
   convert "$PNG_FIXED" RGB:"$RAW" || { echo "raw extract failed for $SZ"; continue; }
@@ -136,6 +154,6 @@ done
 
 done
 
-rm -f aurora_native.nc aurora.nc aurora.cpt ovation.xyz
+rm -f aurora_native.nc aurora_raw.nc aurora.nc aurora_clipped.nc aurora.cpt ovation.xyz
 
 echo "Done."
