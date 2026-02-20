@@ -27,7 +27,6 @@ sudo mkdir -p "$BASE/cache/voacap-cache"
 
 echo "==> Fixing ownership..."
 sudo chown -R www-data:www-data "$BASE/dvoacap-python"
-sudo mkdir -p "$BASE/cache/voacap-cache"
 sudo chown -R www-data:www-data "$BASE/cache/voacap-cache"
 sudo chown www-data:www-data "$BASE/scripts/voacap_bandconditions.py"
 sudo chown www-data:www-data "$BASE/htdocs/ham/HamClock/fetchBandConditions.pl"
