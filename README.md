@@ -47,6 +47,13 @@ We are building a community-powered backend to keep HamClock running. \
 Discord is where we can collaborate, troubleshoot, and exchange ideas — no RF license required 😎 \
 https://discord.gg/wb8ATjVn6M
 
+# Live Screenshots from Real HamClock with OHB
+
+<img width="798" height="568" alt="image" src="https://github.com/user-attachments/assets/14b24350-c0a5-4b00-a36f-9c34c74fef3d" />
+<img width="799" height="568" alt="image" src="https://github.com/user-attachments/assets/f10d67f5-186c-43b6-b9d9-71149fd897f7" />
+<img width="795" height="569" alt="image" src="https://github.com/user-attachments/assets/476bb210-fe1d-4caf-9243-5ada8fffc608" />
+<img width="797" height="569" alt="image" src="https://github.com/user-attachments/assets/35e843bf-f2c6-4b99-881b-1bf675660b7a" />
+
 ## 🚀 Quick Start 👉 [Quick Start Guide](QUICK_START.md)
 ## 📦 Installation 👉 [Detailed installation instructions](INSTALL.md)
 ## 📊 Project Completion Status
