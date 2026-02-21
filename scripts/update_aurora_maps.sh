@@ -39,7 +39,7 @@ echo "Gridding aurora once..."
 # without spreading data far from actual aurora locations.
 # No grdfilter needed — avoids equatorial bleed entirely.
 gmt nearneighbor "$XYZ" -R-180/180/-90/90 -I0.25 -S3 -Lx -Gaurora_raw.nc
-gmt grdfilter aurora_raw.nc -Fg2 -D4 -Gaurora.nc
+gmt grdfilter aurora_raw.nc -Fg2 -D0 -Gaurora.nc
 gmt grdclip aurora.nc -Sb1/NaN -Gaurora_clipped.nc
 
 # Dynamically scale CPT to actual data max so bright neon always hits the peak
