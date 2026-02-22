@@ -69,8 +69,10 @@ MAP_INTERVAL=6
 MAP_READY=2
 
 NOW=$(date -u -d "$MAP_READY hours ago" +%s)
-HOUR_NOW=$(date -u -d @$NOW +%H)
-START_TIME=$(($NOW - (($HOUR_NOW % $MAP_INTERVAL)*3600) ))
+HOUR_NOW=$(date -u -d "@$NOW" +%H)
+HOUR_NOW=$((10#$HOUR_NOW))
+
+START_TIME=$(( NOW - ((HOUR_NOW % MAP_INTERVAL) * 3600) ))
 
 # try back to 8 intervals
 NUM_TRYS=8
