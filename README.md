@@ -4,7 +4,9 @@ When the original backend went dark, the clocks didn’t have to.
 
 Open-source, self-hostable backend replacement for HamClock — restoring live propagation data, maps, and feeds.
 
-Drop-in compatible with existing HamClock clients — no firmware changes required.
+What's a backend? It is how HamClock got all of its data. Without a separare backend, all HamClock's will cease to function by June 2026.
+
+Drop-in compatible with existing HamClock's — no firmware changes required.
 
 OHB provides faithful replacements for the data feeds and map assets
 that HamClock depends on — built by operators, for operators.
