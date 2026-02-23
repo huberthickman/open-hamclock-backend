@@ -366,9 +366,13 @@ echo -e "${BLU}==> Configuring lighttpd${NC}"
 if [[ -f /etc/rpi-issue ]]; then
   echo -e "${YEL}Pi OS detected (${VERSION_CODENAME:-unknown})...${NC}"
   sudo ln -sf "$BASE/lighttpd-conf/52-hamclock-pi.conf" /etc/lighttpd/conf-enabled/50-hamclock.conf
+  sudo ln -sf "$BASE/lighttpd-conf/53-voacap-proxy.conf" /etc/lighttpd/conf-enabled/53-voacap-proxy.conf
+  sudo lighttpd-enable-mod proxy || true
 else
   echo -e "${YEL}Non-Pi OS detected (${ID:-?} ${VERSION_CODENAME:-unknown})...${NC}"
   sudo ln -sf "$BASE/lighttpd-conf/50-hamclock.conf" /etc/lighttpd/conf-enabled/50-hamclock.conf
+  sudo ln -sf "$BASE/lighttpd-conf/53-voacap-proxy.conf" /etc/lighttpd/conf-enabled/53-voacap-proxy.conf
+  sudo lighttpd-enable-mod proxy || true
 fi
 
 sudo lighttpd -t -f /etc/lighttpd/lighttpd.conf
