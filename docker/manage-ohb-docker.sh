@@ -560,6 +560,8 @@ networks:
     enable_ipv6: true
     ipam:
      driver: default
+     config:
+       - subnet: 172.21.0.0/16
     driver_opts:
       com.docker.network.bridge.name: ohb
 
