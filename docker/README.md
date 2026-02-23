@@ -48,12 +48,14 @@ Find the tag you want from git:
 ```
 https://github.com/BrianWilkinsFL/open-hamclock-backend/tags
 ```
-Navigate into the tag, download from ```Manage Docker Installs``` which will get you a file named: ```manage-ohb-docker.sh```, and make it executable. Using curl might work like this for v1.0:
+Navigate into the tag, download from ```Manage Docker Installs``` which will get you a file named: ```manage-ohb-docker-<version>.sh```. Make it executable. Using curl might work like this for v1.0:
 ```
-curl -sO 
-https://github.com/BrianWilkinsFL/open-hamclock-backend/releases/download/v1.0/manage-ohb-docker.sh
-chmod +x manage-ohb-docker.sh
+curl -sO https://github.com/BrianWilkinsFL/open-hamclock-backend/releases/download/v1.0/manage-ohb-docker-v1.0.sh
+chmod +x manage-ohb-docker-v1.0.sh
 ```
+Plug in the version you downloaded for v1.0 in this example.
+
+In the examples below we'll just call the utility ```manage-ohb-docker.sh```. But you'd run your version. For example for v1.0 you'd run ```./manage-ohb-docker-v1.0.sh```
 
 ### option 2: get the GitHub source tree
 The git clone command below should have the right URL but you can check it by visiting https://github.com/BrianWilkinsFL/open-hamclock-backend, click on the green "Code" button and copy the https url.

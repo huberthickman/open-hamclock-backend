@@ -20,7 +20,8 @@ jobs:
 
       - name: Add tag to manager
         run: |
-          sed -i 's/^\(OHB_MANAGER_VERSION=\).*$/\1${{ github.event.inputs.tag_name }}/' ./docker/manage-ohb-docker.sh
+          sed 's/^\(OHB_MANAGER_VERSION=\).*$/\1${{ github.event.inputs.tag_name }}/' ./docker/manage-ohb-docker.sh \
+          > ./docker/manage-ohb-docker-${{ github.event.inputs.tag_name }}.sh
 
       - name: Create Release and Upload Asset
         env:
@@ -28,6 +29,6 @@ jobs:
         run: |
           # Grabs file from repo tree and uploads with a label
           gh release create ${{ github.event.inputs.tag_name }} \
-            './docker/manage-ohb-docker.sh#Manage Docker Installs' \
+            './docker/manage-ohb-docker-${{ github.event.inputs.tag_name }}.sh#Manage Docker Installs' \
             --title "OHB Release: ${{ github.event.inputs.tag_name }}" \
             --generate-notes
