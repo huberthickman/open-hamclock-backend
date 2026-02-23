@@ -40,7 +40,7 @@ LANG=C
 15 10,14 * * * $VENV/bin/python3 $BASE/scripts/ssn_simple.py   >> $BASE/logs/ssn_simple.log 2>&1
 */5 * * * *    $VENV/bin/python3 $BASE/scripts/swind_simple.py >> $BASE/logs/gen_swind_24hr.log 2>&1
 */10 * * * *   $VENV/bin/python3 $BASE/scripts/bz_simple.py    >> $BASE/logs/bz_simple.log 2>&1
-6,37 * * * *   $VENV/bin/python3 $BASE/scripts/flux_simple.py  >> $BASE/logs/flux_simple.log 2>&1
+*/30 * * * *   $VENV/bin/python3 $BASE/scripts/flux_simple.py  >> $BASE/logs/flux_simple.log 2>&1
 */5 * * * *    $VENV/bin/python3 $BASE/scripts/xray_simple.py  >> $BASE/logs/xray_simple.log 2>&1
 */15 * * * *   $VENV/bin/python3 $BASE/scripts/kindex_simple.py > $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp && mv -f $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp $BASE/htdocs/ham/HamClock/geomag/kindex.txt
 
