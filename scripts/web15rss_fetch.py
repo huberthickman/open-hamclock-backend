@@ -27,6 +27,13 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 NG3K_MAX = 5
 HAMWEEKLY_MAX = 5
 
+# Cache file encodings on disk (must match what web15rss.pl expects when decoding)
+CACHE_ENCODINGS = {
+    "arnewsline": "utf-8",
+    "ng3k": "iso-8859-1",   # CSI-compatible path for NG3K
+    "hamweekly": "utf-8",
+}
+
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
@@ -41,22 +48,31 @@ log = logging.getLogger(__name__)
 # Helper: atomic cache write
 # Writes to a .tmp file then renames so clients never see a partial file.
 # ---------------------------------------------------------------------------
-def write_cache(name: str, lines: list[str]) -> None:
+def write_cache(name: str, lines: list[str], encoding: str | None = None) -> None:
     if not lines:
         log.warning("[%s] Nothing to write, keeping existing cache", name)
         return
+
+    enc = encoding or CACHE_ENCODINGS.get(name, "utf-8")
 
     os.makedirs(CACHE_DIR, exist_ok=True)
     dest = os.path.join(CACHE_DIR, f"{name}.txt")
     tmp_fd, tmp_path = tempfile.mkstemp(dir=CACHE_DIR, prefix=f"{name}_", suffix=".tmp")
 
     try:
-        with os.fdopen(tmp_fd, "w", encoding="utf-8") as fh:
+        with os.fdopen(tmp_fd, "w", encoding=enc, errors="replace", newline="\n") as fh:
             fh.write("\n".join(lines) + "\n")
-        os.replace(tmp_path, dest)  # atomic on Linux
-        log.info("[%s] Wrote %d lines to cache", name, len(lines))
+            fh.flush()
+            os.fsync(fh.fileno())
+
+        os.replace(tmp_path, dest)  # atomic on Linux (same filesystem)
+        log.info("[%s] Wrote %d lines to cache (%s)", name, len(lines), enc)
+
     except Exception:
-        os.unlink(tmp_path)
+        try:
+            os.unlink(tmp_path)
+        except FileNotFoundError:
+            pass
         raise
 
 # ---------------------------------------------------------------------------
@@ -99,7 +115,7 @@ def fetch_arnewsline() -> None:
     if not lines:
         raise ValueError("No bullet lines parsed")
 
-    write_cache("arnewsline", lines)
+    write_cache("arnewsline", lines, encoding=CACHE_ENCODINGS["arnewsline"])
 
 
 # ---------------------------------------------------------------------------
@@ -115,7 +131,10 @@ def fetch_ng3k() -> None:
     )
     resp.raise_for_status()
 
-    soup = BeautifulSoup(resp.text, "lxml")
+    # Let BeautifulSoup parse from bytes to avoid requests text-decoding guess issues
+    soup = BeautifulSoup(resp.content, "lxml")
+
+    # Local date is fine for this endpoint; if you want UTC determinism, switch here.
     today = date.today()
     lines = []
 
@@ -137,21 +156,26 @@ def fetch_ng3k() -> None:
         qsl = tds[-1].get_text(strip=True)
 
         # Parse dates: "2025 Mar01" or "2025 Mar 01"
-        try:
-            start = datetime.strptime(start_text, "%Y %b%d").date()
-        except ValueError:
-            try:
-                start = datetime.strptime(start_text, "%Y %b %d").date()
-            except ValueError:
-                continue
+        start = None
+        end = None
 
-        try:
-            end = datetime.strptime(end_text, "%Y %b%d").date()
-        except ValueError:
+        for fmt in ("%Y %b%d", "%Y %b %d"):
             try:
-                end = datetime.strptime(end_text, "%Y %b %d").date()
+                start = datetime.strptime(start_text, fmt).date()
+                break
             except ValueError:
-                continue
+                pass
+        if start is None:
+            continue
+
+        for fmt in ("%Y %b%d", "%Y %b %d"):
+            try:
+                end = datetime.strptime(end_text, fmt).date()
+                break
+            except ValueError:
+                pass
+        if end is None:
+            continue
 
         if not (start <= today <= end):
             continue
@@ -169,7 +193,7 @@ def fetch_ng3k() -> None:
     if not lines:
         raise ValueError("No active DXpeditions parsed")
 
-    write_cache("ng3k", lines)
+    write_cache("ng3k", lines, encoding=CACHE_ENCODINGS["ng3k"])
 
 
 # ---------------------------------------------------------------------------
@@ -198,7 +222,7 @@ def fetch_hamweekly() -> None:
     if not lines:
         raise ValueError("No titles parsed")
 
-    write_cache("hamweekly", lines)
+    write_cache("hamweekly", lines, encoding=CACHE_ENCODINGS["hamweekly"])
 
 
 # ---------------------------------------------------------------------------
