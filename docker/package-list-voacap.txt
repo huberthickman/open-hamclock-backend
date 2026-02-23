@@ -1,0 +1,10 @@
+# empty lines and lines beginning with a # are ignored. Note that comments within lines are not ignored
+
+# temp for development
+#less
+#vim
+
+# packages required by hamclock-backend
+python3
+python3-numpy
+python3-pip

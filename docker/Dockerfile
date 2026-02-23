@@ -1,20 +1,49 @@
 #######################################################
+# Multi-stage build
+#######################################################
+
+#######################################################
+# build voacap
+#######################################################
+FROM debian:13.3-slim AS build-voacap
+
+USER root
+WORKDIR /opt
+
+# Install voap build prerequisites
+COPY docker/package-list-voacap.txt /opt
+COPY docker/dvoacap.tgz /opt
+
+# Build the voacap artifacts
+RUN apt update && \
+    apt install -y --no-install-recommends $(grep -v '^#' package-list-voacap.txt) && \
+    apt-get clean && \
+    rm -Rf /var/lib/apt/lists/* && \
+    # \
+    # move this and packages into a build \
+    tar xzf dvoacap.tgz && \
+    pip install dvoacap-python-main/. --break-system-packages && \
+    rm -Rf dvoacap-python-main
+
+#######################################################
 # Build the real image
 #######################################################
 FROM debian:13.3-slim
 
 USER root
 WORKDIR /opt
+COPY . /opt/hamclock-backend/
 
 # Install prerequisites
-COPY docker/package-list.txt /opt
 RUN apt update && \
-    apt install -y --no-install-recommends $(grep -v '^#' package-list.txt) && \
+    apt install -y --no-install-recommends $(grep -v '^#' /opt/hamclock-backend/docker/package-list.txt) && \
     apt-get clean && \
-    rm -rf package-list.txt /var/lib/apt/lists/* 
+    rm -rf /var/lib/apt/lists/* 
+
+# Copy voacap after python was installed above
+COPY --from=build-voacap /usr/local/lib/python3.13/dist-packages/ /usr/local/lib/python3.13/dist-packages/
 
 # Install hamclock-backend
-COPY . /opt/hamclock-backend/
 RUN cd /opt/hamclock-backend && \
     # \
     # make directory structure \
@@ -25,11 +54,6 @@ RUN cd /opt/hamclock-backend && \
         data \
         htdocs && \
     mv  docker/run.sh /opt && \
-    # \
-    # move this and packages into a build \
-    curl -fsSL https://github.com/skyelaird/dvoacap-python/archive/refs/heads/main.tar.gz | tar -xz && \
-    pip install dvoacap-python-main/. --break-system-packages && \
-    rm -Rf dvoacap-python-main && \
     # \
     # cron is tightly coupled to the type of python install. cron is written for pyenv. however \
     # when there is no pip or pyenv, python runs from /usr. \
