@@ -78,6 +78,8 @@ main() {
 
 do_all() {
     warn_image_tag
+    warn_local_edits
+    get_dvoacap
     build_image
 }
 
@@ -96,6 +98,34 @@ warn_image_tag() {
             echo "WARNING: the docker image for '$IMAGE' already exists. Please remove it if you want to rebuild."
             exit 2
         fi
+    fi
+}
+
+warn_local_edits() {
+    # check if there are local edits in the filesystem. We probably don't want to push them
+    git diff-index --quiet HEAD --
+    LOCAL_EDITS=$?
+
+    if [ $LOCAL_EDITS -ne 0 ]; then
+        if [ $MULTI_PLATFORM == true ]; then
+            echo
+            echo "ERROR: There are local edits. stash or reset them before pushing"
+            echo "       images to Docker Hub."
+            exit 3
+        else
+            echo
+            echo "WARNING: there are local edits. If you didn't intend that, stash"
+            echo "         them and build again."
+        fi
+    fi
+    return $LOCAL_EDITS
+}
+
+get_dvoacap() {
+    if [ ! -e dvoacap.tgz ]; then
+        echo
+        echo "Getting dvoacap-python from GitHub ..."
+        curl -fsSL https://github.com/skyelaird/dvoacap-python/archive/refs/heads/main.tar.gz -o dvoacap.tgz
     fi
 }
 
