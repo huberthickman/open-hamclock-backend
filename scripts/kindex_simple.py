@@ -1,221 +1,181 @@
-#!/usr/bin/env python3
-"""
-Generate HamClock-compatible Kp stream: 72 lines total
-- 56 historic values (7 days * 8 bins/day), ending at a chosen 3-hour boundary with optional lag
-- 16 forecast values from the 3-day geomag forecast Kp table, with an adjustable bin offset
-  (so you can start forecast at 03-06UT instead of 00-03UT and still keep 16 bins by
-   borrowing the first bin of day3).
+#!/opt/hamclock-backend/venv/bin/python3
+# kindex_simple.py
+#
+# Build HamClock geomag/kindex.txt (72 lines) from SWPC:
+#   - daily-geomagnetic-indices.txt  -> most recent 56 valid observed Planetary Kp bins
+#   - 3-day-geomag-forecast.txt      -> 16 forecast Kp bins starting at current UTC 3-hour slot
+#
+# CSI-matching behavior:
+#   forecast slice starts at current UTC bin index (hour // 3) within day1 of the 3-day forecast,
+#   then takes 16 bins (48 hours).
+#
+# Output path is atomically written:
+#   /opt/hamclock-backend/htdocs/ham/HamClock/geomag/kindex.txt
 
-Output: one float per line, oldest -> newest.
-Never emits NaN or negative values; fills missing with persistence.
+from __future__ import annotations
 
-Recent bins (where DGD has -1 sentinel values) are patched from the
-real-time planetary Kp JSON endpoint to match CSI behaviour.
-"""
-
+import os
 import re
-import math
-from datetime import datetime, timezone, timedelta
+import sys
+import tempfile
+from datetime import datetime, timezone
 
 import pandas as pd
 import requests
 
+DAILY_URL = "https://services.swpc.noaa.gov/text/daily-geomagnetic-indices.txt"
+FCST_URL = "https://services.swpc.noaa.gov/text/3-day-geomag-forecast.txt"
+OUTFILE = "/opt/hamclock-backend/htdocs/ham/HamClock/geomag/kindex.txt"
 
-DGD_URL  = "https://services.swpc.noaa.gov/text/daily-geomagnetic-indices.txt"
-GMF_URL  = "https://services.swpc.noaa.gov/text/3-day-geomag-forecast.txt"
-RT_URL   = "https://services.swpc.noaa.gov/json/planetary_k_index_1m.json"
-
-KP_VPD  = 8
-KP_NHD  = 7
-KP_NPD  = 2
-KP_NV   = (KP_NHD + KP_NPD) * KP_VPD  # 72
-HIST_NV = KP_NHD * KP_VPD              # 56
-FCST_NV = KP_NPD * KP_VPD              # 16
-
-FCST_OFFSET_BINS = 1   # forecast starts at 03-06UT bin of day1
+TIMEOUT = 20
+HEADERS = {"User-Agent": "OHB kindex_simple.py"}
 
 
-def floor_to_3h(dt_utc: datetime) -> datetime:
-    dt_utc = dt_utc.astimezone(timezone.utc)
-    hour   = (dt_utc.hour // 3) * 3
-    return dt_utc.replace(hour=hour, minute=0, second=0, microsecond=0)
+def fetch_text(url: str) -> str:
+    r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+    r.raise_for_status()
+    r.encoding = "utf-8"
+    return r.text
 
 
-def sanitize_series(vals, fallback=0.0):
-    """Replace non-finite or negative values with last good (persistence)."""
-    out  = []
-    last = None
-    for v in vals:
-        try:
-            f = float(v)
-        except Exception:
-            f = float("nan")
-
-        if math.isnan(f) or math.isinf(f) or f < 0:
-            f = last if last is not None else float(fallback)
-        else:
-            last = f
-
-        out.append(f)
-    return out
-
-
-def load_realtime_kp_bins() -> dict:
+def parse_daily_kp_observed(text: str) -> pd.Series:
     """
-    Fetch real-time 1-minute planetary Kp and return a dict mapping
-    3-hour bin start (UTC datetime, truncated to 3h) -> mean Kp (float).
-    Only bins with >= 30 minutes of data are included.
-    """
-    data = requests.get(RT_URL, timeout=20).json()
+    Parse SWPC daily-geomagnetic-indices.txt and return chronological valid Planetary Kp bins.
 
-    # Group 1-minute samples into 3-hour bins
-    bins = {}
-    for row in data:
-        # time_tag format: "2026-02-21 14:00:00.000"
-        try:
-            tt = datetime.strptime(row["time_tag"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
-        except Exception:
+    Assumption (matches SWPC product): the LAST 8 numeric fields on each data row are
+    Planetary Kp values for 00-03, 03-06, ..., 21-24 UTC.
+    """
+    vals = []
+    date_row_re = re.compile(r"^\s*(\d{4})\s+(\d{2})\s+(\d{2})\b")
+
+    for line in text.splitlines():
+        if not date_row_re.match(line):
             continue
-        kp = row.get("estimated_kp")
-        if kp is None:
+
+        nums = re.findall(r"-?\d+(?:\.\d+)?", line)
+        if len(nums) < 11:
             continue
+
         try:
-            kp = float(kp)
-        except Exception:
+            kp8 = [float(x) for x in nums[-8:]]
+        except ValueError:
             continue
-        bin_start = floor_to_3h(tt)
-        bins.setdefault(bin_start, []).append(kp)
 
-    result = {}
-    for bin_start, samples in bins.items():
-        if len(samples) >= 30:           # at least 30 minutes of data
-            result[bin_start] = sum(samples) / len(samples)
-    return result
+        vals.extend(kp8)
+
+    if not vals:
+        raise RuntimeError("No Kp rows parsed from daily-geomagnetic-indices.txt")
+
+    s = pd.Series(vals, dtype="float64")
+    s = s[s >= 0].reset_index(drop=True)  # drop -1 placeholders
+
+    if len(s) < 56:
+        raise RuntimeError(f"Need at least 56 valid observed Kp bins, got {len(s)}")
+
+    return s
 
 
-def load_dgd_planetary_timeseries() -> pd.DataFrame:
+def parse_forecast_kp(text: str) -> pd.Series:
     """
-    Return DataFrame with columns:
-      time_tag (UTC datetime)  kp (float)
-    Built from DGD daily rows expanded into 8 x 3-hour bins per day.
-    Bins with -1 (missing) are left as NaN so the caller can patch them.
+    Parse ONLY the NOAA Kp forecast table from 3-day-geomag-forecast.txt.
 
-    Uses regex instead of read_csv to avoid column misalignment when integer
-    Kp fields fuse together without spaces (e.g. "1-1-1-1").
-    The planetary float Kp values are always the last 8 tokens on each line.
+    Returns 24 values in chronological order:
+      day1 bins 0..7, day2 bins 0..7, day3 bins 0..7
     """
-    txt = requests.get(DGD_URL, timeout=20).text
+    lines = text.splitlines()
+    in_kp_block = False
+    kp_rows = []
 
-    # Match date then capture the 8 trailing planetary float Kp columns
     row_re = re.compile(
-        r"^(\d{4})\s+(\d{1,2})\s+(\d{1,2})\s+.+?\s+"
-        r"([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+"
-        r"([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s*$"
+        r"^\s*(\d{2})-(\d{2})UT\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*$"
     )
 
-    bins = []
-    for ln in txt.splitlines():
-        if len(ln) < 5 or not ln[:4].isdigit() or ln[4] != ' ':
+    for line in lines:
+        if "NOAA Kp index forecast" in line:
+            in_kp_block = True
             continue
-        m = row_re.match(ln)
-        if not m:
+
+        if not in_kp_block:
             continue
-        year, month, day = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        day0 = datetime(year, month, day, tzinfo=timezone.utc)
-        for i in range(8):
-            t  = day0 + timedelta(hours=i * 3)
-            kp = float(m.group(4 + i))
-            bins.append((t, float("nan") if kp < 0 else kp))
 
-    if not bins:
-        raise RuntimeError("No DGD data rows found")
-
-    ts = pd.DataFrame(bins, columns=["time_tag", "kp"]).sort_values("time_tag").reset_index(drop=True)
-    return ts
-
-
-def load_forecast_16_bins(offset_bins: int = FCST_OFFSET_BINS) -> list:
-    txt   = requests.get(GMF_URL, timeout=20).text
-    lines = txt.splitlines()
-
-    start_idx = None
-    for i, ln in enumerate(lines):
-        if ln.startswith("NOAA Kp index forecast"):
-            start_idx = i
-            break
-    if start_idx is None:
-        raise RuntimeError("No 'NOAA Kp index forecast' header found")
-
-    row_re = re.compile(r"^\s*\d{2}-\d{2}UT\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s*$")
-
-    rows = []
-    for ln in lines[start_idx + 1:]:
-        m = row_re.match(ln)
-        if not m:
-            continue
-        rows.append((float(m.group(1)), float(m.group(2)), float(m.group(3))))
-        if len(rows) == 8:
+        if "NOAA Ap index forecast" in line:
             break
 
-    if len(rows) != 8:
-        raise RuntimeError(f"Expected 8 Kp rows, got {len(rows)}")
+        m = row_re.match(line)
+        if not m:
+            continue
 
-    seq24 = [r[0] for r in rows] + [r[1] for r in rows] + [r[2] for r in rows]
-    if offset_bins < 0 or offset_bins + FCST_NV > len(seq24):
-        raise RuntimeError(f"Bad offset_bins={offset_bins}")
+        start_hour = int(m.group(1))
+        vals = [float(m.group(3)), float(m.group(4)), float(m.group(5))]
+        kp_rows.append((start_hour, vals))
 
-    return sanitize_series(seq24[offset_bins:offset_bins + FCST_NV], fallback=0.0)
+    if len(kp_rows) != 8:
+        raise RuntimeError(f"Expected exactly 8 Kp forecast UT rows, got {len(kp_rows)}")
 
+    kp_rows.sort(key=lambda x: x[0])
 
-def build_kp72(fcst_offset_bins: int = FCST_OFFSET_BINS) -> list:
-    """
-    Return exactly 72 values (56 historic + 16 forecast), oldest -> newest.
+    day1 = [vals[0] for _, vals in kp_rows]
+    day2 = [vals[1] for _, vals in kp_rows]
+    day3 = [vals[2] for _, vals in kp_rows]
 
-    hist_end is set to the NEXT 3-hour boundary (strict less-than filter),
-    which includes the current in-progress bin exactly once — matching CSI.
-    """
-    dgd_ts  = load_dgd_planetary_timeseries()
-    rt_bins = load_realtime_kp_bins()
-    fcst16  = load_forecast_16_bins(offset_bins=fcst_offset_bins)
+    fc = pd.Series(day1 + day2 + day3, dtype="float64").reset_index(drop=True)
 
-    # 56 bins ending at midnight today — matches CSI's fixed daily anchor
-    now_utc    = datetime.now(timezone.utc)
-    hist_end   = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
-    hist_start = hist_end - timedelta(hours=3 * 56)          # 56 bins, strict >
+    if len(fc) != 24:
+        raise RuntimeError(f"Expected 24 forecast Kp bins, got {len(fc)}")
 
-    hist = dgd_ts[(dgd_ts["time_tag"] > hist_start) & (dgd_ts["time_tag"] < hist_end)].copy()
-    if hist.empty:
-        raise RuntimeError("No historic bins found")
-
-    # Patch DGD NaN bins with real-time averages where available (within window only)
-    def patch_kp(row):
-        if math.isnan(row["kp"]) and row["time_tag"] in rt_bins:
-            return rt_bins[row["time_tag"]]
-        return row["kp"]
-
-    hist["kp"] = hist.apply(patch_kp, axis=1)
-
-    # Sanitize — persistence-fill anything still NaN
-    hist["kp"] = sanitize_series(hist["kp"].tolist(), fallback=0.0)
-
-    hist56 = hist["kp"].tolist()
-    if len(hist56) < HIST_NV:
-        pad    = [hist56[0]] * (HIST_NV - len(hist56))
-        hist56 = pad + hist56
-    else:
-        hist56 = hist56[-HIST_NV:]
-
-    out = sanitize_series(hist56 + fcst16, fallback=hist56[-1] if hist56 else 0.0)
-
-    if len(out) != KP_NV:
-        raise RuntimeError(f"Internal error: expected {KP_NV} values, got {len(out)}")
-    return out
+    return fc
 
 
-def main():
-    kp = build_kp72(fcst_offset_bins=FCST_OFFSET_BINS)
-    print("\n".join(f"{v:.2f}" for v in kp))
+def atomic_write_lines(path: str, values: pd.Series) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    payload = "".join(f"{v:.2f}\n" for v in values.tolist())
+
+    fd, tmp = tempfile.mkstemp(prefix=".kindex.", suffix=".tmp", dir=os.path.dirname(path))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def main() -> int:
+    try:
+        daily_text = fetch_text(DAILY_URL)
+        fcst_text = fetch_text(FCST_URL)
+
+        obs = parse_daily_kp_observed(daily_text).tail(56).reset_index(drop=True)
+
+        fc_all = parse_forecast_kp(fcst_text)  # 24 bins: day1 + day2 + day3
+
+        # CSI-like splice: start at current UTC 3-hour bin within day1, take 16 bins (48h)
+        now_utc = datetime.now(timezone.utc)
+        start_bin = now_utc.hour // 3  # 0..7
+        fc = fc_all.iloc[start_bin:start_bin + 16].reset_index(drop=True)
+
+        if len(fc) != 16:
+            raise RuntimeError(
+                f"Expected 16 forecast bins from start_bin={start_bin}, got {len(fc)}"
+            )
+
+        out = pd.concat([obs, fc], ignore_index=True)
+
+        if len(out) != 72:
+            raise RuntimeError(f"Expected 72 output values, got {len(out)}")
+
+        atomic_write_lines(OUTFILE, out)
+        return 0
+
+    except Exception as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
