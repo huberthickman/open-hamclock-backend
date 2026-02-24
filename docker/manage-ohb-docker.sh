@@ -268,6 +268,8 @@ is_docker_installed() {
     DOCKERD_RETVAL=$?
     DOCKER_COMPOSE_VERSION=$(docker compose version 2>/dev/null)
     DOCKER_COMPOSE_RETVAL=$?
+    JQ_VERSION=$(jq --version 2>/dev/null)
+    JQ_RETVAL=$?
 
     if [ $DOCKERD_RETVAL -ne 0 ]; then
         echo "ERROR: docker is not installed. Could not find dockerd." >&2
@@ -276,23 +278,14 @@ is_docker_installed() {
         echo "ERROR: docker compose is not installed but we found docker. Try installing docker compose." >&2
         echo "  docker version found: '$DOCKERD_VERSION'" >&2
         RETVAL=$DOCKER_COMPOSE_RETVAL
-    elif ! is_jq_installed; then
-        RETVAL=$?
+    elif [ $JQ_RETVAL -ne 0 ]; then
+        echo "ERROR: jq is not installed. Could not find jq." >&2
+        RETVAL=$JQ_RETVAL
     else
         echo "$DOCKERD_VERSION"
         echo "$DOCKER_COMPOSE_VERSION"
     fi
     return $RETVAL
-}
-
-is_jq_installed() {
-    JQ_VERSION=$(jq --version 2>/dev/null)
-    jQ_RETVAL=$?
-
-    if [ $jQ_RETVAL -ne 0 ]; then
-        echo "ERROR: jq is not installed. Could not find jq." >&2
-    fi
-    return $JQ_RETVAL
 }
 
 is_dvc_created() {
