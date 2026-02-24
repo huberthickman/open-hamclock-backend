@@ -43,6 +43,7 @@ BANDS: List[Tuple[str, float]] = [
 # HamClock MODE labels
 MODE_LABELS = {
     3:  "WSPR",
+    13: "FT8",
     17: "FT4",
     19: "CW",
     22: "RTTY",
