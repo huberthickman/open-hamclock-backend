@@ -7,7 +7,8 @@ OHB_HTDOCS_DVC=ohb-htdocs
 IMAGE_BASE=komacke/open-hamclock-backend
 
 # Get our directory locations in order
-HERE="$(realpath -s "$(dirname "$0")")"
+HERE="$(realpath -s "$(dirname "$0")" 2>/dev/null)"
+[ -z "$HERE" ] && HERE="$(realpath "$(dirname "$0")")"
 THIS="$(basename "$0")"
 STARTED_FROM="$PWD"
 cd $HERE
