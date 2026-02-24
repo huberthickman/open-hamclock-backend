@@ -74,7 +74,7 @@ echo "Dense grid points with absorption: $NPTS"
 if [ "$NPTS" -gt 0 ]; then
     gmt nearneighbor drap.xyz -R-180/180/-90/90 -I0.5 -S3 -Gdrap_nn.nc
     gmt grdfilter drap_nn.nc -Fg4 -D0 -Gdrap_s1.nc
-    gmt grdfilter drap_s1.nc  -Fg3 -D0 -Gdrap.nc
+    gmt grdfilter drap_s1.nc -Fg3 -D0 -Gdrap.nc
 else
     echo "No absorption data; generating quiet grid."
     gmt grdmath -R-180/180/-90/90 -I0.5 0 = drap.nc
@@ -137,7 +137,8 @@ gamma = b"\x00"*12
 
 v4hdr = struct.pack("<IiiHHIIIIII",
     biSize, W, -H, 1, 16, 3, len(pix), 0, 0, 0, 0
-) + struct.pack("<IIII", rmask, gmask, bmask, amask)   + struct.pack("<I", cstype) + endpoints + gamma
+) + struct.pack("<IIII", rmask, gmask, bmask, amask) \
+  + struct.pack("<I", cstype) + endpoints + gamma
 
 with open(outbmp, "wb") as f:
     f.write(filehdr)
@@ -154,26 +155,38 @@ for DN in D N; do
     H=${SZ#*x}
     BASE="$GMT_USERDIR/drap_${DN}_${SZ}"
     PNG="${BASE}.png"
+    PNG_HAZE="${BASE}_haze.png"
     PNG_FIXED="${BASE}_fixed.png"
     BMP="$OUTDIR/map-${DN}-${SZ}-DRAP-S.bmp"
 
     echo "  -> ${DN} ${SZ}"
 
+    # Render Day and Night identically in GMT (black base + DRAP + white borders)
     gmt begin "$BASE" png
       gmt coast -R-180/180/-90/90 -JQ0/${W}p -Gblack -Sblack -A10000
-
-      if [[ "$DN" == "D" ]]; then
-        gmt coast -R-180/180/-90/90 -JQ0/${W}p -Gwhite -Swhite -A10000 -t80
-      fi
 
       if [ "$NPTS" -gt 0 ]; then
         gmt grdimage drap.nc -Cdrap.cpt -Q -n+b -t25
       fi
 
+      # White linework only (transparent interiors)
       gmt coast -R-180/180/-90/90 -JQ0/${W}p -W0.5p,white -N1/0.4p,white -A10000
     gmt end || { echo "gmt failed for $DN $SZ"; continue; }
 
-    convert "$PNG" -resize "${SZ}!" "$PNG_FIXED" || { echo "resize failed for $DN $SZ"; continue; }
+    # Apply Day haze as a post-process (avoids GMT layer-order/fill issues)
+
+        # Apply Day haze as a post-process (avoids GMT layer-order/fill issues)
+    if [[ "$DN" == "D" ]]; then
+      # Build overlay from the actual rendered PNG dimensions so it covers the full image.
+      # 205/220/205 at 20% opacity over black ~= #292C29 on empty areas.
+      convert "$PNG" \
+        \( +clone -fill "rgb(205,220,205)" -colorize 100 -alpha set -channel A -evaluate set 20% +channel \) \
+        -compose over -composite \
+        "$PNG_HAZE" || { echo "day haze failed for $DN $SZ"; continue; }
+    else
+      cp -f "$PNG" "$PNG_HAZE" || { echo "copy failed for $DN $SZ"; continue; }
+    fi
+    convert "$PNG_HAZE" -resize "${SZ}!" "$PNG_FIXED" || { echo "resize failed for $DN $SZ"; continue; }
 
     # Extract raw RGB then write proper BMPv4 RGB565 matching ClearSkyInstitute format
     RAW="$GMT_USERDIR/drap_${DN}_${SZ}.raw"
@@ -183,7 +196,7 @@ for DN in D N; do
 
     zlib_compress "$BMP" "${BMP}.z"
 
-    rm -f "$PNG" "$PNG_FIXED"
+    rm -f "$PNG" "$PNG_HAZE" "$PNG_FIXED"
     echo "  -> Done: $BMP"
   done
 done
