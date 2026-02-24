@@ -18,7 +18,7 @@ COPY docker/dvoacap.tgz /opt
 RUN apt update && \
     apt install -y --no-install-recommends $(grep -v '^#' package-list-voacap.txt) && \
     apt-get clean && \
-    rm -Rf /var/lib/apt/lists/* && \
+    rm -rf /var/lib/apt/lists/* /opt/package-list-voacap.txt && \
     # \
     # move this and packages into a build \
     tar xzf dvoacap.tgz && \
@@ -32,14 +32,17 @@ FROM debian:13.3-slim
 
 USER root
 WORKDIR /opt
-COPY . /opt/hamclock-backend/
+
+COPY docker/package-list.txt /opt
 
 # Install prerequisites
 RUN apt update && \
-    apt install -y --no-install-recommends $(grep -v '^#' /opt/hamclock-backend/docker/package-list.txt) && \
+    apt install -y --no-install-recommends $(grep -v '^#' package-list.txt) && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* 
+    rm -rf /var/lib/apt/lists/* /opt/package-list.txt
 
+# the OHB tree
+COPY . /opt/hamclock-backend/
 # Copy voacap after python was installed above
 COPY --from=build-voacap /usr/local/lib/python3.13/dist-packages/ /usr/local/lib/python3.13/dist-packages/
 

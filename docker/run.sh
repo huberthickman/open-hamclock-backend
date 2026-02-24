@@ -1,19 +1,22 @@
-#!/bin/sh
-
-# pull down latest server data files
-#/usr/sbin/runuser -u www-data /opt/sync_server_data_files.sh
+#!/bin/bash
 
 echo "This image is based on git: '$(cat hamclock-backend/git.version)'"
 echo "Start up time: $(date -u +%H:%M:%S)"
 
+echo "Syncing the initial, static directory structure ..."
+mkdir -p /opt/hamclock-backend/htdocs/ham
+cp -a /opt/hamclock-backend/ham/HamClock /opt/hamclock-backend/htdocs/ham
+if [ "$ENABLE_DASHBOARD" == true ]; then
+    cp -a /opt/hamclock-backend/ham/dashboard/* /opt/hamclock-backend/htdocs
+else
+    find /opt/hamclock-backend/htdocs -maxdepth 1 -type f -exec rm -f "{}" +
+    cp /opt/hamclock-backend/ham/dashboard/favicon.ico /opt/hamclock-backend/htdocs
+    cp /opt/hamclock-backend/ham/dashboard/ascii.txt /opt/hamclock-backend/htdocs
+fi
+
 # start the web server
 echo "Starting lighttpd ..."
 /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf
-
-echo "Syncing the initial, static directory structure ..."
-cp -a /opt/hamclock-backend/ham /opt/hamclock-backend/htdocs
-mv -f /opt/hamclock-backend/htdocs/ham/dashboard/* /opt/hamclock-backend/htdocs
-rmdir /opt/hamclock-backend/htdocs/ham/dashboard
 
 # only needs to be primed when container is instantiated
 if [ ! -e /opt/hamclock-backend/htdocs/prime_crontabs.done ]; then

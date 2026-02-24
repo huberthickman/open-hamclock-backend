@@ -18,11 +18,18 @@ GIT_TAG=$(git describe --exact-match --tags 2>/dev/null)
 GIT_VERSION=$(git rev-parse --short HEAD 2>/dev/null)
 CONTAINER=${IMAGE_BASE##*/}
 DEFAULT_HTTP_PORT=:80
-REQUEST_DOCKER_PULL=false
+DEFAULT_DASHBOARD_INSTALL=true
+# the following env is the lighttpd env file
 DEFAULT_ENV_FILE="$STARTED_FROM/.env"
+
+# the following env is for sticky settings
+STICKY_ENV_FILE=$DOCKER_PROJECT.env
+REQUEST_DOCKER_PULL=false
 RETVAL=0
 
 main() {
+    get_sticky_vars
+
     COMMAND=$1
     case $COMMAND in
         -h|--help|help)
@@ -54,7 +61,6 @@ main() {
             docker_compose_reset
             ;;
         restart)
-            shift && get_compose_opts "$@"
             docker_compose_restart
             ;;
         remove)
@@ -81,13 +87,20 @@ main() {
             RETVAL=1
             ;;
     esac
+
+    if [ "$SAVE_STICKY_VARS" == true ]; then
+        save_sticky_vars
+    fi
 }
 
 get_compose_opts() {
-    while getopts ":p:t:e:" opt; do
+    while getopts ":p:t:e:d:" opt; do
         case $opt in
             p)
                 REQUESTED_HTTP_PORT="$OPTARG"
+                ;;
+            d)
+                REQUESTED_DASHBOARD_INSTALL="$OPTARG"
                 ;;
             t)
                 REQUESTED_TAG="$OPTARG"
@@ -105,6 +118,7 @@ get_compose_opts() {
                 ;;
         esac
     done
+    SAVE_STICKY_VARS=true
 }
 
 usage () {
@@ -169,6 +183,20 @@ ohb_manager_version() {
     echo $OHB_MANAGER_VERSION
 }
 
+get_sticky_vars() {
+    if [ -r $STICKY_ENV_FILE ]; then
+        source $STICKY_ENV_FILE
+    fi
+}
+
+save_sticky_vars() {
+    cat<<EOF > $STICKY_ENV_FILE
+STICKY_HTTP_PORT="$HTTP_PORT"
+STICKY_DASHBOARD_INSTALL="$ENABLE_DASHBOARD"
+STICKY_LIGHTTPD_ENV_FILE="$ENV_FILE"
+EOF
+}
+
 install_ohb() {
     is_docker_installed >/dev/null || return $?
     is_dvc_created || return $?
@@ -223,6 +251,7 @@ is_ohb_installed() {
         echo "  Base docker image: '$CURRENT_IMAGE_BASE'"
         echo "  Docker image tag:  '$CURRENT_TAG'"
         echo "  HTTP PORT in use:  '$CURRENT_HTTP_PORT'"
+        echo "  Dashboard enabled: '$CURRENT_DASHBOARD_INSTALL'"
     fi
 
     if !  is_container_running; then
@@ -316,7 +345,7 @@ docker_compose_up() {
         RETVAL=0
     else
         docker_compose_yml && docker compose -f <(echo "$DOCKER_COMPOSE_YML") create 
-        if [ -n "$REQUESTED_ENV_FILE" -o -r "$DEFAULT_ENV_FILE" ]; then
+        if [ -n "$REQUESTED_ENV_FILE" -o -n "$STICKY_LIGHTTPD_ENV_FILE" -o -r "$DEFAULT_ENV_FILE" ]; then
             copy_env_to_container >/dev/null
         fi
         docker_compose_yml && docker compose -f <(echo "$DOCKER_COMPOSE_YML") up -d
@@ -393,6 +422,8 @@ copy_env_to_container() {
         else
             ENV_FILE="$STARTED_FROM/$REQUESTED_ENV_FILE"
         fi
+    elif [ -n "$STICKY_LIGHTTPD_ENV_FILE" ]; then
+        ENV_FILE="$STICKY_LIGHTTPD_ENV_FILE"
     else
         ENV_FILE="$DEFAULT_ENV_FILE"
     fi
@@ -472,6 +503,10 @@ determine_port() {
         HTTP_PORT=$CURRENT_HTTP_PORT
 
     # third precedence
+    elif [ -n "$STICKY_HTTP_PORT" ]; then
+        HTTP_PORT=$STICKY_HTTP_PORT
+
+    # fourth precedence
     else
         HTTP_PORT=$DEFAULT_HTTP_PORT
 
@@ -479,6 +514,23 @@ determine_port() {
 
     # if there was a :, it was probably IP:PORT; otherwise make sure there's a colon for port only
     [[ $HTTP_PORT =~ : ]] || HTTP_PORT=":$HTTP_PORT"
+}
+
+determine_dashboard() {
+
+    # first precedence
+    if [ -n "$REQUESTED_DASHBOARD_INSTALL" ]; then
+        ENABLE_DASHBOARD=$REQUESTED_DASHBOARD_INSTALL
+
+    # second precedence
+    elif [ -n "$STICKY_DASHBOARD_INSTALL" ]; then
+        ENABLE_DASHBOARD=$STICKY_DASHBOARD_INSTALL
+
+    # third precedence
+    else
+        ENABLE_DASHBOARD=$DEFAULT_DASHBOARD_INSTALL
+
+    fi
 }
 
 determine_tag() {
@@ -490,7 +542,7 @@ determine_tag() {
         return
     fi
 
-    # upgrade wouldn't use the current tag unless it's latest. 
+    # upgrade shouldn't use the current tag unless it's 'latest'. 
     # GIT_TAG would be empty and we'll get DEFAULT_TAG
 
     # second precedence
@@ -515,6 +567,8 @@ docker_compose_yml() {
     determine_tag
     IMAGE=$IMAGE_BASE:$TAG
 
+    determine_dashboard
+
     if [ "$TAG" == "$CURRENT_TAG"  -a "$REQUEST_DOCKER_PULL" == true ]; then
         echo "Doing a docker pull of the image before docker compose."
         docker pull $IMAGE | sed 's/^/  /'
@@ -526,7 +580,8 @@ docker_compose_yml() {
             sed "s/__DOCKER_PROJECT__/$DOCKER_PROJECT/" |
             sed "s|__IMAGE__|$IMAGE|" |
             sed "s/__CONTAINER__/$CONTAINER/" |
-            sed "s/__HTTP_PORT__/$HTTP_PORT/"
+            sed "s/__HTTP_PORT__/$HTTP_PORT/" |
+            sed "s/__ENABLE_DASHBOARD__/$ENABLE_DASHBOARD/"
     )
 }
 
@@ -538,6 +593,8 @@ services:
     container_name: __CONTAINER__
     image: __IMAGE__
     restart: unless-stopped
+    environment:
+      ENABLE_DASHBOARD: __ENABLE_DASHBOARD__
     networks:
       - ohb
     ports:
